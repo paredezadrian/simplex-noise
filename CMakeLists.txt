@@ -197,6 +197,38 @@ endif()
 
 # Documentation
 option(SIMPLEX_BUILD_DOCS "Build documentation" OFF)
+
+# Code formatting and analysis
+option(SIMPLEX_ENABLE_FORMATTING "Enable clang-format and clang-tidy" ON)
+
+if(SIMPLEX_ENABLE_FORMATTING)
+    find_program(CLANG_FORMAT clang-format)
+    find_program(CLANG_TIDY clang-tidy)
+    
+    if(CLANG_FORMAT)
+        add_custom_target(format
+            COMMAND ${CLANG_FORMAT} -i src/*.c include/*.h examples/*.c tests/*.c
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMENT "Formatting code with clang-format"
+        )
+    endif()
+    
+    if(CLANG_TIDY)
+        add_custom_target(tidy
+            COMMAND ${CLANG_TIDY} src/*.c include/*.h examples/*.c tests/*.c -- -Iinclude -std=c99
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMENT "Running clang-tidy analysis"
+        )
+    endif()
+    
+    if(CLANG_FORMAT AND CLANG_TIDY)
+        add_custom_target(format-check
+            COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/format-code.sh
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMENT "Running complete code formatting and analysis"
+        )
+    endif()
+endif()
 if(SIMPLEX_BUILD_DOCS)
     find_package(Doxygen)
     if(DOXYGEN_FOUND)

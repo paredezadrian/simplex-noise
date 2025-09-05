@@ -1,15 +1,15 @@
 /**
  * @file simplex_noise.h
  * @brief Advanced Pure C implementation of Simplex Noise algorithm
- * 
+ *
  * @copyright Copyright (c) 2025. All rights reserved.
  * @license This code is provided under the MIT License.
- * 
+ *
  * @details This implementation is based on Ken Perlin's improved noise algorithm
  * and provides 1D, 2D, 3D, and 4D simplex noise generation with fractal support.
  * Features multiple PRNG algorithms, advanced interpolation methods, performance
  * optimizations, and comprehensive noise variants for professional applications.
- * 
+ *
  * @author Adrian Paredez
  * @version 2.0
  * @date 9/5/2025
@@ -18,8 +18,8 @@
 #ifndef SIMPLEX_NOISE_H
 #define SIMPLEX_NOISE_H
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 
 /* PRNG Algorithm Types */
 typedef enum {
@@ -76,7 +76,7 @@ typedef struct {
     double amplitude;
     double offset;
     double scale;
-    
+
     /* Advanced Configuration Options */
     char config_file[256];
     char output_file[256];
@@ -125,7 +125,7 @@ typedef struct {
  * @param config Configuration structure with all parameters
  * @return 0 on success, negative error code on failure
  */
-int simplex_noise_init_advanced(const simplex_config_t *config);
+int simplex_noise_init_advanced(const simplex_config_t* config);
 
 /**
  * Initialize simplex noise with a seed (legacy function)
@@ -190,7 +190,8 @@ int simplex_set_profiling(int enable);
  * @param config Pointer to configuration structure to fill
  * @return 0 on success, negative error code on failure
  */
-int simplex_load_config(const char *filename, simplex_config_type_t config_type, simplex_config_t *config);
+int simplex_load_config(const char* filename, simplex_config_type_t config_type,
+                        simplex_config_t* config);
 
 /**
  * Save configuration to file
@@ -199,7 +200,8 @@ int simplex_load_config(const char *filename, simplex_config_type_t config_type,
  * @param config Pointer to configuration structure to save
  * @return 0 on success, negative error code on failure
  */
-int simplex_save_config(const char *filename, simplex_config_type_t config_type, const simplex_config_t *config);
+int simplex_save_config(const char* filename, simplex_config_type_t config_type,
+                        const simplex_config_t* config);
 
 /**
  * Validate configuration
@@ -207,14 +209,15 @@ int simplex_save_config(const char *filename, simplex_config_type_t config_type,
  * @param validation Pointer to validation result structure
  * @return 0 on success, negative error code on failure
  */
-int simplex_validate_config(const simplex_config_t *config, simplex_config_validation_t *validation);
+int simplex_validate_config(const simplex_config_t* config,
+                            simplex_config_validation_t* validation);
 
 /**
  * Reset configuration to defaults
  * @param config Pointer to configuration structure to reset
  * @return 0 on success, negative error code on failure
  */
-int simplex_reset_config(simplex_config_t *config);
+int simplex_reset_config(simplex_config_t* config);
 
 /**
  * Merge two configurations (base + override)
@@ -223,7 +226,8 @@ int simplex_reset_config(simplex_config_t *config);
  * @param result Resulting merged configuration
  * @return 0 on success, negative error code on failure
  */
-int simplex_merge_config(const simplex_config_t *base, const simplex_config_t *override, simplex_config_t *result);
+int simplex_merge_config(const simplex_config_t* base, const simplex_config_t* override,
+                         simplex_config_t* result);
 
 /**
  * Get configuration value as string
@@ -233,7 +237,8 @@ int simplex_merge_config(const simplex_config_t *base, const simplex_config_t *o
  * @param max_len Maximum length of value buffer
  * @return 0 on success, negative error code on failure
  */
-int simplex_get_config_string(const simplex_config_t *config, const char *key, char *value, size_t max_len);
+int simplex_get_config_string(const simplex_config_t* config, const char* key, char* value,
+                              size_t max_len);
 
 /**
  * Set configuration value from string
@@ -242,7 +247,7 @@ int simplex_get_config_string(const simplex_config_t *config, const char *key, c
  * @param value Value string to set
  * @return 0 on success, negative error code on failure
  */
-int simplex_set_config_string(simplex_config_t *config, const char *key, const char *value);
+int simplex_set_config_string(simplex_config_t* config, const char* key, const char* value);
 
 /**
  * Get configuration value as double
@@ -251,7 +256,7 @@ int simplex_set_config_string(simplex_config_t *config, const char *key, const c
  * @param value Pointer to store double value
  * @return 0 on success, negative error code on failure
  */
-int simplex_get_config_double(const simplex_config_t *config, const char *key, double *value);
+int simplex_get_config_double(const simplex_config_t* config, const char* key, double* value);
 
 /**
  * Set configuration value from double
@@ -260,7 +265,7 @@ int simplex_get_config_double(const simplex_config_t *config, const char *key, d
  * @param value Double value to set
  * @return 0 on success, negative error code on failure
  */
-int simplex_set_config_double(simplex_config_t *config, const char *key, double value);
+int simplex_set_config_double(simplex_config_t* config, const char* key, double value);
 
 /**
  * Get configuration value as integer
@@ -269,7 +274,7 @@ int simplex_set_config_double(simplex_config_t *config, const char *key, double 
  * @param value Pointer to store integer value
  * @return 0 on success, negative error code on failure
  */
-int simplex_get_config_int(const simplex_config_t *config, const char *key, int *value);
+int simplex_get_config_int(const simplex_config_t* config, const char* key, int* value);
 
 /**
  * Set configuration value from integer
@@ -278,7 +283,7 @@ int simplex_get_config_int(const simplex_config_t *config, const char *key, int 
  * @param value Integer value to set
  * @return 0 on success, negative error code on failure
  */
-int simplex_set_config_int(simplex_config_t *config, const char *key, int value);
+int simplex_set_config_int(simplex_config_t* config, const char* key, int value);
 
 /**
  * Print configuration to stdout
@@ -286,7 +291,7 @@ int simplex_set_config_int(simplex_config_t *config, const char *key, int value)
  * @param format Output format (0=compact, 1=verbose, 2=JSON)
  * @return 0 on success, negative error code on failure
  */
-int simplex_print_config(const simplex_config_t *config, int format);
+int simplex_print_config(const simplex_config_t* config, int format);
 
 /**
  * Create example configuration file
@@ -294,7 +299,7 @@ int simplex_print_config(const simplex_config_t *config, int format);
  * @param config_type Type of configuration file to create
  * @return 0 on success, negative error code on failure
  */
-int simplex_create_example_config(const char *filename, simplex_config_type_t config_type);
+int simplex_create_example_config(const char* filename, simplex_config_type_t config_type);
 
 /* ===== CORE NOISE FUNCTIONS ===== */
 
@@ -391,8 +396,7 @@ double simplex_billowy_3d(double x, double y, double z);
  * @param lacunarity Frequency multiplier per octave
  * @return fBm noise value
  */
-double simplex_fbm_2d(double x, double y, int octaves, 
-                     double persistence, double lacunarity);
+double simplex_fbm_2d(double x, double y, int octaves, double persistence, double lacunarity);
 
 /**
  * Generate Fractional Brownian Motion (fBm) noise (3D)
@@ -404,8 +408,8 @@ double simplex_fbm_2d(double x, double y, int octaves,
  * @param lacunarity Frequency multiplier per octave
  * @return fBm noise value
  */
-double simplex_fbm_3d(double x, double y, double z, int octaves,
-                     double persistence, double lacunarity);
+double simplex_fbm_3d(double x, double y, double z, int octaves, double persistence,
+                      double lacunarity);
 
 /**
  * Generate Hybrid Multi-Fractal noise (2D)
@@ -417,8 +421,8 @@ double simplex_fbm_3d(double x, double y, double z, int octaves,
  * @param offset Offset value for hybrid calculation
  * @return Hybrid Multi-Fractal noise value
  */
-double simplex_hybrid_multifractal_2d(double x, double y, int octaves,
-                                     double persistence, double lacunarity, double offset);
+double simplex_hybrid_multifractal_2d(double x, double y, int octaves, double persistence,
+                                      double lacunarity, double offset);
 
 /**
  * Generate Domain Warping noise (2D)
@@ -440,8 +444,7 @@ double simplex_domain_warp_2d(double x, double y, double warp_strength);
  * @param lacunarity Frequency multiplier per octave (default: 2.0)
  * @return Fractal noise value
  */
-double simplex_fractal_2d(double x, double y, int octaves, 
-                         double persistence, double lacunarity);
+double simplex_fractal_2d(double x, double y, int octaves, double persistence, double lacunarity);
 
 /**
  * Generate fractal noise (multiple octaves) for 3D
@@ -453,8 +456,8 @@ double simplex_fractal_2d(double x, double y, int octaves,
  * @param lacunarity Frequency multiplier per octave (default: 2.0)
  * @return Fractal noise value
  */
-double simplex_fractal_3d(double x, double y, double z, int octaves,
-                         double persistence, double lacunarity);
+double simplex_fractal_3d(double x, double y, double z, int octaves, double persistence,
+                          double lacunarity);
 
 /* ===== PERFORMANCE & UTILITY FUNCTIONS ===== */
 
@@ -463,7 +466,7 @@ double simplex_fractal_3d(double x, double y, double z, int octaves,
  * @param stats Pointer to statistics structure to fill
  * @return 0 on success, negative error code on failure
  */
-int simplex_get_performance_stats(simplex_perf_stats_t *stats);
+int simplex_get_performance_stats(simplex_perf_stats_t* stats);
 
 /**
  * Reset performance statistics
@@ -498,8 +501,8 @@ int simplex_get_cache_misses(void);
  * @param output Array to store results (must be width*height elements)
  * @return 0 on success, negative error code on failure
  */
-int simplex_noise_array_2d(double x_start, double y_start, 
-                          int width, int height, double step, double *output);
+int simplex_noise_array_2d(double x_start, double y_start, int width, int height, double step,
+                           double* output);
 
 /**
  * Generate noise array (3D) - optimized for bulk generation
@@ -513,12 +516,12 @@ int simplex_noise_array_2d(double x_start, double y_start,
  * @param output Array to store results (must be width*height*depth elements)
  * @return 0 on success, negative error code on failure
  */
-int simplex_noise_array_3d(double x_start, double y_start, double z_start,
-                          int width, int height, int depth, double step, double *output);
+int simplex_noise_array_3d(double x_start, double y_start, double z_start, int width, int height,
+                           int depth, double step, double* output);
 
 /**
  * Cleanup and free resources
  */
 void simplex_cleanup(void);
 
-#endif // SIMPLEX_NOISE_H
+#endif  // SIMPLEX_NOISE_H
