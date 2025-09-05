@@ -34,7 +34,6 @@ Simplex noise is an improved version of Perlin noise that's faster and produces 
 
 ### Installation
 
-#### Using CMake (Recommended)
 ```bash
 git clone https://github.com/paredezadrian/simplex-noise.git
 cd simplex-noise
@@ -42,25 +41,6 @@ mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j$(nproc)
 sudo make install
-```
-
-#### Using Autotools
-```bash
-git clone https://github.com/paredezadrian/simplex-noise.git
-cd simplex-noise
-autoreconf -fiv
-./configure --enable-simd
-make -j$(nproc)
-sudo make install
-```
-
-#### Using Meson
-```bash
-git clone https://github.com/paredezadrian/simplex-noise.git
-cd simplex-noise
-meson setup builddir --buildtype=release
-meson compile -C builddir
-sudo meson install -C builddir
 ```
 
 ### Basic Usage
@@ -196,13 +176,10 @@ enable_profiling=1
 
 ### Prerequisites
 - C99 compatible compiler (GCC, Clang, MSVC)
-- CMake 3.12+ (for CMake build)
-- Autotools (for Autotools build)
-- Meson 0.50+ (for Meson build)
+- CMake 3.12+
 
 ### Build Options
 
-#### CMake
 ```bash
 cmake .. -DCMAKE_BUILD_TYPE=Release \
          -DSIMPLEX_ENABLE_SIMD=ON \
@@ -210,36 +187,12 @@ cmake .. -DCMAKE_BUILD_TYPE=Release \
          -DSIMPLEX_BUILD_EXAMPLES=ON
 ```
 
-#### Autotools
-```bash
-./configure --enable-simd \
-            --enable-profiling \
-            --enable-tests \
-            --enable-examples
-```
-
-#### Meson
-```bash
-meson setup builddir --buildtype=release \
-                     -Dsimd=true \
-                     -Dprofiling=true \
-                     -Dtests=true \
-                     -Dexamples=true
-```
-
 ## Testing
 
 Run the test suite to verify everything works:
 
 ```bash
-# CMake
 cd build && ctest
-
-# Autotools
-make check
-
-# Meson
-meson test -C builddir
 ```
 
 ## Use Cases

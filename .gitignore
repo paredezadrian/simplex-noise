@@ -1,5 +1,5 @@
 # Simplex Noise Library - .gitignore
-# Generated for C project with CMake, Autotools, and Meson build systems
+# Generated for C project with CMake build system
 
 # =============================================================================
 # BUILD ARTIFACTS
@@ -18,21 +18,9 @@ Makefile
 !CMakeLists.txt
 !*.cmake.in
 
-# Autotools build artifacts
-Makefile.in
-aclocal.m4
-autom4te.cache/
+# Generated files
 config.h
 config.h.in
-config.log
-config.status
-configure
-configure.ac.bak
-.deps/
-.dirstamp
-.libs/
-*.la
-*.lo
 *.o
 *.so
 *.so.*
@@ -40,22 +28,6 @@ configure.ac.bak
 *.dylib
 *.dll
 *.exe
-stamp-h1
-install-sh
-missing
-depcomp
-compile
-config.guess
-config.sub
-ltmain.sh
-m4/
-build-aux/
-
-# Meson build artifacts
-builddir/
-meson-logs/
-meson-private/
-compile_commands.json
 
 # =============================================================================
 # COMPILED BINARIES
