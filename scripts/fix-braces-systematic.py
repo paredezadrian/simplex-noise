@@ -4,7 +4,6 @@ Systematic fix for braces around single-line if statements
 """
 
 import re
-import sys
 
 def fix_braces_in_file(filename):
     with open(filename, 'r') as f:

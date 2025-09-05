@@ -21,6 +21,36 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* ===== IMAGE PROCESSING CONSTANTS ===== */
+#define MAX_COLOR_VALUE 255
+#define NORMALIZATION_FACTOR 0.5
+#define PIXEL_SCALE_FACTOR 127.5
+#define TERRAIN_WATER_THRESHOLD 0.3
+#define TERRAIN_WATER_R_SCALE 100
+#define TERRAIN_WATER_G_SCALE 150
+#define TERRAIN_WATER_B_SCALE 255
+#define TERRAIN_SAND_THRESHOLD 0.5
+#define TERRAIN_SAND_R_BASE 200
+#define TERRAIN_SAND_R_SCALE 55
+#define TERRAIN_SAND_G_BASE 180
+#define TERRAIN_SAND_G_SCALE 75
+#define TERRAIN_SAND_B_BASE 100
+#define TERRAIN_SAND_B_SCALE 50
+#define TERRAIN_GRASS_THRESHOLD 0.7
+#define TERRAIN_GRASS_R_SCALE 100
+#define TERRAIN_GRASS_G_BASE 100
+#define TERRAIN_GRASS_G_SCALE 155
+#define TERRAIN_GRASS_B_SCALE 50
+#define TERRAIN_MOUNTAIN_THRESHOLD 0.9
+#define TERRAIN_MOUNTAIN_R_SCALE 150
+#define TERRAIN_MOUNTAIN_G_SCALE 100
+#define TERRAIN_MOUNTAIN_B_SCALE 50
+#define TERRAIN_ROCK_BASE 100
+#define TERRAIN_ROCK_SCALE 100
+#define TERRAIN_SNOW_R_SCALE 255
+#define TERRAIN_SNOW_G_SCALE 255
+#define TERRAIN_SNOW_B_SCALE 255
+
 /* ===== INTERNAL FUNCTIONS ===== */
 
 // PPM file writing functions
@@ -49,7 +79,7 @@ static int write_png_simple(FILE* file, const uint8_t* pixels, int width, int he
     // For now, we'll write as PPM since we don't have libpng
     // In a full implementation, you'd use libpng here
     fprintf(stderr, "PNG support requires libpng. Writing as PPM instead.\n");
-    return write_ppm_header(file, width, height, 255) > 0 &&
+    return write_ppm_header(file, width, height, MAX_COLOR_VALUE) > 0 &&
                    write_ppm_pixels(file, pixels, width, height, channels) == 0
                ? 0
                : -1;
@@ -57,49 +87,49 @@ static int write_png_simple(FILE* file, const uint8_t* pixels, int width, int he
 
 // Color conversion functions
 static void noise_to_grayscale(double noise, uint8_t* pixel) {
-    *pixel = (uint8_t)((noise + 1.0) * 127.5);
+    *pixel = (uint8_t)((noise + 1.0) * PIXEL_SCALE_FACTOR);
 }
 
 static void noise_to_rgb(double noise, uint8_t* r, uint8_t* g, uint8_t* b) {
-    double normalized = (noise + 1.0) * 0.5;  // 0 to 1
-    *r = (uint8_t)(normalized * 255);
-    *g = (uint8_t)(normalized * 255);
-    *b = (uint8_t)(normalized * 255);
+    double normalized = (noise + 1.0) * NORMALIZATION_FACTOR;  // 0 to 1
+    *r = (uint8_t)(normalized * MAX_COLOR_VALUE);
+    *g = (uint8_t)(normalized * MAX_COLOR_VALUE);
+    *b = (uint8_t)(normalized * MAX_COLOR_VALUE);
 }
 
 static void noise_to_heightmap(double noise, uint8_t* r, uint8_t* g, uint8_t* b) {
-    double normalized = (noise + 1.0) * 0.5;  // 0 to 1
+    double normalized = (noise + 1.0) * NORMALIZATION_FACTOR;  // 0 to 1
 
-    if (normalized < 0.3) {
+    if (normalized < TERRAIN_WATER_THRESHOLD) {
         // Water - blue
-        *r = (uint8_t)(normalized * 100);
-        *g = (uint8_t)(normalized * 150);
-        *b = (uint8_t)(255);
-    } else if (normalized < 0.5) {
+        *r = (uint8_t)(normalized * TERRAIN_WATER_R_SCALE);
+        *g = (uint8_t)(normalized * TERRAIN_WATER_G_SCALE);
+        *b = (uint8_t)(TERRAIN_WATER_B_SCALE);
+    } else if (normalized < TERRAIN_SAND_THRESHOLD) {
         // Sand - yellow
-        *r = (uint8_t)(200 + normalized * 55);
-        *g = (uint8_t)(180 + normalized * 75);
-        *b = (uint8_t)(100 + normalized * 50);
-    } else if (normalized < 0.7) {
+        *r = (uint8_t)(TERRAIN_SAND_R_BASE + normalized * TERRAIN_SAND_R_SCALE);
+        *g = (uint8_t)(TERRAIN_SAND_G_BASE + normalized * TERRAIN_SAND_G_SCALE);
+        *b = (uint8_t)(TERRAIN_SAND_B_BASE + normalized * TERRAIN_SAND_B_SCALE);
+    } else if (normalized < TERRAIN_GRASS_THRESHOLD) {
         // Grass - green
-        *r = (uint8_t)(normalized * 100);
-        *g = (uint8_t)(100 + normalized * 155);
-        *b = (uint8_t)(normalized * 50);
-    } else if (normalized < 0.9) {
+        *r = (uint8_t)(normalized * TERRAIN_GRASS_R_SCALE);
+        *g = (uint8_t)(TERRAIN_GRASS_G_BASE + normalized * TERRAIN_GRASS_G_SCALE);
+        *b = (uint8_t)(normalized * TERRAIN_GRASS_B_SCALE);
+    } else if (normalized < TERRAIN_MOUNTAIN_THRESHOLD) {
         // Rock - gray
-        *r = (uint8_t)(100 + normalized * 100);
-        *g = (uint8_t)(100 + normalized * 100);
-        *b = (uint8_t)(100 + normalized * 100);
+        *r = (uint8_t)(TERRAIN_ROCK_BASE + normalized * TERRAIN_ROCK_SCALE);
+        *g = (uint8_t)(TERRAIN_ROCK_BASE + normalized * TERRAIN_ROCK_SCALE);
+        *b = (uint8_t)(TERRAIN_ROCK_BASE + normalized * TERRAIN_ROCK_SCALE);
     } else {
         // Snow - white
-        *r = 255;
-        *g = 255;
-        *b = 255;
+        *r = TERRAIN_SNOW_R_SCALE;
+        *g = TERRAIN_SNOW_G_SCALE;
+        *b = TERRAIN_SNOW_B_SCALE;
     }
 }
 
 static void noise_to_terrain(double noise, uint8_t* r, uint8_t* g, uint8_t* b) {
-    double normalized = (noise + 1.0) * 0.5;  // 0 to 1
+    double normalized = (noise + 1.0) * NORMALIZATION_FACTOR;  // 0 to 1
 
     if (normalized < 0.2) {
         // Deep water
