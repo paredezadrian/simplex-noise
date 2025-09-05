@@ -128,11 +128,11 @@ static void noise_to_terrain(double noise, uint8_t *r, uint8_t *g, uint8_t *b) {
 // Generate noise data for image
 static int generate_noise_data(double *data, int width, int height, 
                               const simplex_image_config_t *config, double z_offset) {
+    (void)z_offset; // Suppress unused parameter warning - used in 3D image generation
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             double noise_x = (x + config->offset_x) * config->scale;
             double noise_y = (y + config->offset_y) * config->scale;
-            double noise_z = (z_offset + config->offset_z) * config->scale;
             
             double noise_value;
             

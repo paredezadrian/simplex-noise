@@ -107,7 +107,9 @@ int main(void) {
     simplex_set_color_mode(&config, SIMPLEX_COLOR_RGB);
     
     // Create animation directory
-    system("mkdir -p animation_frames");
+    if (system("mkdir -p animation_frames") != 0) {
+        printf("Warning: Could not create animation_frames directory\n");
+    }
     
     if (simplex_generate_animation(&config, 10, 0.1, "animation_frames") == 0) {
         printf("✓ Animation frames generated in 'animation_frames/' directory\n");

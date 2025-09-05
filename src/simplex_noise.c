@@ -1138,6 +1138,12 @@ int simplex_get_cache_misses(void) {
 }
 
 /* ===== CACHING SYSTEM ===== */
+/* Note: These functions are part of the advanced API and are intentionally
+ * unused in the current implementation. They provide caching capabilities
+ * for future performance optimizations. */
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
 
 static double cache_lookup(double x, double y, double z, double w) {
     if (!cache_enabled) return 0.0;
@@ -1173,6 +1179,9 @@ static void cache_store(double x, double y, double z, double w, double result) {
 }
 
 /* ===== ADVANCED INTERPOLATION ===== */
+/* Note: These functions are part of the advanced API and are intentionally
+ * unused in the current implementation. They provide advanced interpolation
+ * capabilities for future enhancements. */
 
 static double interpolate(double t, simplex_interp_type_t type) {
     switch (type) {
@@ -1206,6 +1215,9 @@ static int fast_floor(double x) {
     return x > 0 ? (int)x : (int)x - 1;
 }
 
+/* Note: This function is part of the advanced API and is intentionally
+ * unused in the current implementation. It provides advanced permutation
+ * initialization for future enhancements. */
 static void init_permutation(unsigned int seed) {
     if (seed == 0) {
         seed = (unsigned int)time(NULL);
@@ -1706,3 +1718,5 @@ double simplex_fractal_3d(double x, double y, double z, int octaves,
     
     return value / maxValue;
 }
+
+#pragma GCC diagnostic pop
