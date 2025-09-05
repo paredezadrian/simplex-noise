@@ -118,11 +118,11 @@ setup(
     description="Python wrapper for Pure C Simplex Noise library",
     long_description=read_readme(),
     long_description_content_type="text/markdown",
-    url="https://github.com/paredezadrian/noise",
+    url="https://github.com/paredezadrian/simplex-noise",
     project_urls={
-        "Bug Tracker": "https://github.com/paredezadrian/noise/issues",
-        "Documentation": "https://paredezadrian.github.io/noise/",
-        "Source Code": "https://github.com/paredezadrian/noise",
+        "Bug Tracker": "https://github.com/paredezadrian/simplex-noise/issues",
+        "Documentation": "https://paredezadrian.github.io/simplex-noise/",
+        "Source Code": "https://github.com/paredezadrian/simplex-noise",
     },
     classifiers=[
         "Development Status :: 5 - Production/Stable",
@@ -175,7 +175,7 @@ setup(
     zip_safe=False,
     platforms=["any"],
     license="MIT",
-    download_url="https://github.com/paredezadrian/noise/archive/v{}.tar.gz".format(
+    download_url="https://github.com/paredezadrian/simplex-noise/archive/v{}.tar.gz".format(
         get_version()
     ),
 )
