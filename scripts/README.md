@@ -7,9 +7,11 @@ This directory contains utility scripts for the Simplex Noise Library project.
 ### Documentation Scripts
 
 - **`docs-serve.sh`** - Start local MkDocs development server
+
   ```bash
   ./scripts/docs-serve.sh
   ```
+
   Starts the documentation server at http://127.0.0.1:8000
 
 - **`docs-deploy.sh`** - Deploy documentation to GitHub Pages
@@ -21,6 +23,7 @@ This directory contains utility scripts for the Simplex Noise Library project.
 ### Code Quality Scripts
 
 - **`format-code.sh`** - Format code using clang-format
+
   ```bash
   ./scripts/format-code.sh
   ```
