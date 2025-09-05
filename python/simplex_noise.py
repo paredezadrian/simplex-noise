@@ -53,7 +53,7 @@ class SimplexNoise:
         if library_path is None:
             # Try to find the library in common locations
             possible_paths = [
-                # Relative to this file
+                # Relative to this file (development)
                 os.path.join(
                     os.path.dirname(__file__), "..", "build", "libsimplex_noise.so"
                 ),
@@ -63,6 +63,10 @@ class SimplexNoise:
                 os.path.join(
                     os.path.dirname(__file__), "..", "build", "libsimplex_noise.dll"
                 ),
+                # Package data (PyPI installation)
+                os.path.join(os.path.dirname(__file__), "libsimplex_noise.so"),
+                os.path.join(os.path.dirname(__file__), "libsimplex_noise.dylib"),
+                os.path.join(os.path.dirname(__file__), "libsimplex_noise.dll"),
                 # System paths
                 "libsimplex_noise.so",
                 "libsimplex_noise.dylib",

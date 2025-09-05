@@ -91,13 +91,7 @@ def build_c_library():
         os.chdir(original_cwd)
 
 
-# Check and build C library
-if not check_c_library():
-    if not build_c_library():
-        print("Warning: C library not found and could not be built automatically.")
-        print(
-            "Please build the C library manually before installing the Python wrapper."
-        )
+# Note: C library should be built separately before packaging
 
 
 # Get version
@@ -117,7 +111,7 @@ def get_version():
 
 # Setup configuration
 setup(
-    name="simplex-noise-pure-c",
+    name="simplex-noise",
     version=get_version(),
     author="Adrian Paredez",
     author_email="adrian@example.com",  # Replace with actual email
@@ -153,20 +147,20 @@ setup(
     py_modules=["simplex_noise"],
     python_requires=">=3.7",
     install_requires=[
-        "numpy>=1.15.0",
-        "Pillow>=6.0.0",
+        "numpy",
+        "Pillow",
     ],
     extras_require={
         "dev": [
-            "pytest>=6.0.0",
-            "pytest-cov>=2.0.0",
-            "matplotlib>=3.0.0",
-            "black>=21.0.0",
-            "flake8>=3.8.0",
+            "pytest",
+            "pytest-cov",
+            "matplotlib",
+            "black",
+            "flake8",
         ],
         "docs": [
-            "sphinx>=4.0.0",
-            "sphinx-rtd-theme>=1.0.0",
+            "sphinx",
+            "sphinx-rtd-theme",
         ],
     },
     entry_points={

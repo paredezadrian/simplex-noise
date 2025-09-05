@@ -1,0 +1,12 @@
+include README.md
+include LICENSE.md
+include requirements.txt
+recursive-include examples *.py
+recursive-include tests *.py
+include ../build/libsimplex_noise.so
+include ../build/libsimplex_noise.dylib
+include ../build/libsimplex_noise.dll
+include ../build/libsimplex_noise.a
+global-exclude *.pyc
+global-exclude __pycache__
+global-exclude .git*

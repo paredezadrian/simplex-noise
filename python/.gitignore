@@ -1,0 +1,43 @@
+# Python packaging
+build/
+dist/
+*.egg-info/
+*.egg
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Documentation
+docs/_build/
+
+# Publishing
+PUBLISHING.md
+
+# Temporary files
+*.tmp
+*.temp
