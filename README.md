@@ -52,9 +52,7 @@ sudo make install
 #### Python Bindings
 
 ```bash
-# Build the C library first (see above)
-cd python
-pip install -e .
+pip install simplex-noise
 ```
 
 ### Basic Usage

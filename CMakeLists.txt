@@ -192,7 +192,7 @@ if(SIMPLEX_BUILD_PYTHON)
 
             # Create Python installation target
             add_custom_target(python_install
-                COMMAND ${Python3_EXECUTABLE} -m pip install -e .
+                COMMAND ${Python3_EXECUTABLE} -m pip install .
                 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/python
                 DEPENDS simplex_noise_shared
                 COMMENT "Installing Python wrapper"

@@ -26,7 +26,7 @@ A high-performance Python wrapper for the Pure C Simplex Noise library, providin
 2. **Install the Python wrapper**:
    ```bash
    cd python
-   pip install -e .
+   pip install simplex-noise
    ```
 
 ### Basic Usage
