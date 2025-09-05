@@ -63,7 +63,7 @@ int main(void) {
     // Test 4: Key-value operations
     printf("Test 4: Key-value operations...\n");
     char value_str[256];
-    double value_double;
+    double value_double = 0.0;
 
     if (simplex_get_config_string(&config, "persistence", value_str, sizeof(value_str)) == 0) {
         printf("✓ Got persistence as string: %s\n", value_str);

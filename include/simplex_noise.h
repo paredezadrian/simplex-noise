@@ -78,8 +78,8 @@ typedef struct {
     double scale;
 
     /* Advanced Configuration Options */
-    char config_file[256];
-    char output_file[256];
+    char config_file[256];  // NOLINT(readability-magic-numbers)
+    char output_file[256];  // NOLINT(readability-magic-numbers)
     int verbose_mode;
     int debug_mode;
     int auto_save;
@@ -103,8 +103,8 @@ typedef enum {
 typedef struct {
     int valid;
     int error_count;
-    char errors[10][256];
-    char warnings[10][256];
+    char errors[10][256];  // NOLINT(readability-magic-numbers)
+    char warnings[10][256];  // NOLINT(readability-magic-numbers)
     int warning_count;
 } simplex_config_validation_t;
 

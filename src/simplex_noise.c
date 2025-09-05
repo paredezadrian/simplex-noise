@@ -25,6 +25,33 @@
 #include <string.h>
 #include <time.h>
 
+/* ===== CONSTANTS ===== */
+#define CACHE_HASH_MULTIPLIER 1000
+#define CACHE_EPSILON 1e-9
+#define PERMUTATION_SIZE 256
+#define PERMUTATION_DOUBLE_SIZE 512
+#define LCG_MULTIPLIER 1103515245
+#define LCG_INCREMENT 12345
+#define SIMPLEX_2D_SCALE 70.0
+#define SIMPLEX_3D_SCALE 32.0
+#define SIMPLEX_4D_SCALE 27.0
+#define SIMPLEX_2D_GRAD_COUNT 8
+#define SIMPLEX_3D_GRAD_COUNT 12
+#define SIMPLEX_4D_GRAD_COUNT 32
+#define SIMPLEX_2D_THRESHOLD 0.5
+#define SIMPLEX_3D_THRESHOLD 0.6
+#define SIMPLEX_4D_THRESHOLD 0.6
+#define DOMAIN_WARP_OFFSET 100
+#define MAX_OCTAVES 16
+#define MAX_LACUNARITY 4.0
+#define MAX_CACHE_SIZE_MB 1024.0
+#define MAX_THREADS 64
+#define DEFAULT_CHUNK_SIZE 1024
+#define DEFAULT_MEMORY_LIMIT_MB 256.0
+#define DEFAULT_CACHE_SIZE_MB 16.0
+#define MAX_ERROR_COUNT 10
+#define MAX_ERROR_LENGTH 256
+
 /* ===== GLOBAL STATE MANAGEMENT ===== */
 
 // Global permutation table
@@ -230,9 +257,9 @@ simplex_config_t simplex_get_default_config(void) {
 }
 
 int simplex_noise_init_advanced(const simplex_config_t* config) {
-    if (!config)
+    if (!config) {
         return -1;
-
+    }
     global_config = *config;
 
     // Initialize PRNG
@@ -242,12 +269,12 @@ int simplex_noise_init_advanced(const simplex_config_t* config) {
     prng_init(global_config.seed);
 
     // Initialize permutation table
-    for (int i = 0; i < 256; i++) {
+    for (int i = 0; i < PERMUTATION_SIZE; i++) {
         perm[i] = i;
     }
 
     // Shuffle using selected PRNG
-    for (int i = 255; i > 0; i--) {
+    for (int i = PERMUTATION_SIZE - 1; i > 0; i--) {
         uint32_t j = prng_next() % (i + 1);
         int temp = perm[i];
         perm[i] = perm[j];
@@ -255,8 +282,8 @@ int simplex_noise_init_advanced(const simplex_config_t* config) {
     }
 
     // Duplicate for wrapping
-    for (int i = 0; i < 256; i++) {
-        perm[256 + i] = perm[i];
+    for (int i = 0; i < PERMUTATION_SIZE; i++) {
+        perm[PERMUTATION_SIZE + i] = perm[i];
     }
 
     // Initialize performance stats
@@ -278,23 +305,26 @@ int simplex_noise_init_advanced(const simplex_config_t* config) {
 }
 
 int simplex_set_prng(simplex_prng_type_t prng_type) {
-    if (prng_type >= SIMPLEX_PRG_COUNT)
+    if (prng_type >= SIMPLEX_PRG_COUNT) {
         return -1;
+    }
     global_config.prng_type = prng_type;
     prng_init(global_config.seed);
     return 0;
 }
 
 int simplex_set_noise_variant(simplex_noise_variant_t variant) {
-    if (variant >= SIMPLEX_NOISE_COUNT)
+    if (variant >= SIMPLEX_NOISE_COUNT) {
         return -1;
+    }
     global_config.noise_variant = variant;
     return 0;
 }
 
 int simplex_set_interpolation(simplex_interp_type_t interp_type) {
-    if (interp_type >= SIMPLEX_INTERP_COUNT)
+    if (interp_type >= SIMPLEX_INTERP_COUNT) {
         return -1;
+    }
     global_config.interp_type = interp_type;
     return 0;
 }
@@ -337,15 +367,15 @@ static void trim_whitespace(char* str) {
 // Helper function to parse JSON-like key-value pairs
 static int parse_key_value(const char* line, char* key, char* value, size_t max_len) {
     const char* eq = strchr(line, '=');
-    if (!eq)
+    if (!eq) {
         return -1;
-
+    }
     size_t key_len = eq - line;
     size_t value_len = strlen(eq + 1);
 
-    if (key_len >= max_len || value_len >= max_len)
+    if (key_len >= max_len || value_len >= max_len) {
         return -1;
-
+    }
     strncpy(key, line, key_len);
     key[key_len] = '\0';
     trim_whitespace(key);
@@ -366,9 +396,9 @@ static int parse_key_value(const char* line, char* key, char* value, size_t max_
 // Load configuration from INI file
 static int load_ini_config(const char* filename, simplex_config_t* config) {
     FILE* file = fopen(filename, "r");
-    if (!file)
+    if (!file) {
         return -1;
-
+    }
     char line[512];
     char key[256];
     char value[256];
@@ -377,9 +407,9 @@ static int load_ini_config(const char* filename, simplex_config_t* config) {
         trim_whitespace(line);
 
         // Skip comments and empty lines
-        if (line[0] == '#' || line[0] == ';' || line[0] == '\0')
-            continue;
-
+        if (line[0] == '#' || line[0] == ';' || line[0] == '\0') {
+        continue;
+    }
         if (parse_key_value(line, key, value, sizeof(key)) == 0) {
             // Parse configuration values
             if (strcmp(key, "prng_type") == 0) {
@@ -445,9 +475,9 @@ static int load_ini_config(const char* filename, simplex_config_t* config) {
 // Save configuration to INI file
 static int save_ini_config(const char* filename, const simplex_config_t* config) {
     FILE* file = fopen(filename, "w");
-    if (!file)
+    if (!file) {
         return -1;
-
+    }
     fprintf(file, "# Simplex Noise Configuration File\n");
     fprintf(file, "# Generated on %s\n\n", __DATE__ " " __TIME__);
 
@@ -491,18 +521,18 @@ static int save_ini_config(const char* filename, const simplex_config_t* config)
 // Load configuration from JSON file (simplified parser)
 static int load_json_config(const char* filename, simplex_config_t* config) {
     FILE* file = fopen(filename, "r");
-    if (!file)
+    if (!file) {
         return -1;
-
+    }
     char line[1024];
 
     while (fgets(line, sizeof(line), file)) {
         trim_whitespace(line);
 
         // Skip comments and empty lines
-        if (line[0] == '/' || line[0] == '*' || line[0] == '\0')
-            continue;
-
+        if (line[0] == '/' || line[0] == '*' || line[0] == '\0') {
+        continue;
+    }
         // Simple JSON key-value parser
         if (strstr(line, "\"prng_type\"") && strchr(line, ':')) {
             int temp;
@@ -572,9 +602,9 @@ static int load_json_config(const char* filename, simplex_config_t* config) {
 // Save configuration to JSON file
 static int save_json_config(const char* filename, const simplex_config_t* config) {
     FILE* file = fopen(filename, "w");
-    if (!file)
+    if (!file) {
         return -1;
-
+    }
     fprintf(file, "{\n");
     fprintf(file, "  \"simplex_noise_config\": {\n");
     fprintf(file, "    \"core\": {\n");
@@ -620,9 +650,9 @@ static int save_json_config(const char* filename, const simplex_config_t* config
 // Public configuration management functions
 int simplex_load_config(const char* filename, simplex_config_type_t config_type,
                         simplex_config_t* config) {
-    if (!filename || !config)
+    if (!filename || !config) {
         return -1;
-
+    }
     // Start with default configuration
     *config = simplex_get_default_config();
 
@@ -644,9 +674,9 @@ int simplex_load_config(const char* filename, simplex_config_type_t config_type,
 
 int simplex_save_config(const char* filename, simplex_config_type_t config_type,
                         const simplex_config_t* config) {
-    if (!filename || !config)
+    if (!filename || !config) {
         return -1;
-
+    }
     switch (config_type) {
     case SIMPLEX_CONFIG_INI:
         return save_ini_config(filename, config);
@@ -665,9 +695,9 @@ int simplex_save_config(const char* filename, simplex_config_type_t config_type,
 
 int simplex_validate_config(const simplex_config_t* config,
                             simplex_config_validation_t* validation) {
-    if (!config || !validation)
+    if (!config || !validation) {
         return -1;
-
+    }
     memset(validation, 0, sizeof(simplex_config_validation_t));
     validation->valid = 1;
 
@@ -700,7 +730,7 @@ int simplex_validate_config(const simplex_config_t* config,
     }
 
     // Validate octaves
-    if (config->octaves < 1 || config->octaves > 16) {
+    if (config->octaves < 1 || config->octaves > MAX_OCTAVES) {
         strcpy(validation->errors[validation->error_count], "Octaves must be between 1 and 16");
         validation->error_count++;
         validation->valid = 0;
@@ -714,21 +744,21 @@ int simplex_validate_config(const simplex_config_t* config,
     }
 
     // Validate lacunarity
-    if (config->lacunarity < 1.0 || config->lacunarity > 4.0) {
+    if (config->lacunarity < 1.0 || config->lacunarity > MAX_LACUNARITY) {
         strcpy(validation->warnings[validation->warning_count],
                "Lacunarity should be between 1.0 and 4.0");
         validation->warning_count++;
     }
 
     // Validate cache size
-    if (config->cache_size_mb < 0.0 || config->cache_size_mb > 1024.0) {
+    if (config->cache_size_mb < 0.0 || config->cache_size_mb > MAX_CACHE_SIZE_MB) {
         strcpy(validation->warnings[validation->warning_count],
                "Cache size should be between 0.0 and 1024.0 MB");
         validation->warning_count++;
     }
 
     // Validate max threads
-    if (config->max_threads < 1 || config->max_threads > 64) {
+    if (config->max_threads < 1 || config->max_threads > MAX_THREADS) {
         strcpy(validation->warnings[validation->warning_count],
                "Max threads should be between 1 and 64");
         validation->warning_count++;
@@ -738,83 +768,109 @@ int simplex_validate_config(const simplex_config_t* config,
 }
 
 int simplex_reset_config(simplex_config_t* config) {
-    if (!config)
+    if (!config) {
         return -1;
+    }
     *config = simplex_get_default_config();
     return 0;
 }
 
 int simplex_merge_config(const simplex_config_t* base, const simplex_config_t* override,
                          simplex_config_t* result) {
-    if (!base || !override || !result)
+    if (!base || !override || !result) {
         return -1;
-
+    }
     *result = *base;
 
     // Override with non-default values from override config
-    if (override->prng_type != SIMPLEX_PRG_PCG)
+    if (override->prng_type != SIMPLEX_PRG_PCG) {
         result->prng_type = override->prng_type;
-    if (override->noise_variant != SIMPLEX_NOISE_CLASSIC)
+    }
+    if (override->noise_variant != SIMPLEX_NOISE_CLASSIC) {
         result->noise_variant = override->noise_variant;
-    if (override->interp_type != SIMPLEX_INTERP_SMOOTHSTEP)
+    }
+    if (override->interp_type != SIMPLEX_INTERP_SMOOTHSTEP) {
         result->interp_type = override->interp_type;
-    if (override->precision != SIMPLEX_PRECISION_DOUBLE)
+    }
+    if (override->precision != SIMPLEX_PRECISION_DOUBLE) {
         result->precision = override->precision;
-    if (override->seed != 0)
+    }
+    if (override->seed != 0) {
         result->seed = override->seed;
-    if (override->enable_simd != 0)
+    }
+    if (override->enable_simd != 0) {
         result->enable_simd = override->enable_simd;
-    if (override->enable_caching != 1)
+    }
+    if (override->enable_caching != 1) {
         result->enable_caching = override->enable_caching;
-    if (override->enable_profiling != 0)
+    }
+    if (override->enable_profiling != 0) {
         result->enable_profiling = override->enable_profiling;
-    if (override->persistence != 0.5)
+    }
+    if (override->persistence != 0.5) {
         result->persistence = override->persistence;
-    if (override->lacunarity != 2.0)
+    }
+    if (override->lacunarity != 2.0) {
         result->lacunarity = override->lacunarity;
-    if (override->octaves != 4)
+    }
+    if (override->octaves != 4) {
         result->octaves = override->octaves;
-    if (override->frequency != 1.0)
+    }
+    if (override->frequency != 1.0) {
         result->frequency = override->frequency;
-    if (override->amplitude != 1.0)
+    }
+    if (override->amplitude != 1.0) {
         result->amplitude = override->amplitude;
-    if (override->offset != 0.0)
+    }
+    if (override->offset != 0.0) {
         result->offset = override->offset;
-    if (override->scale != 1.0)
+    }
+    if (override->scale != 1.0) {
         result->scale = override->scale;
-
+    }
     // String fields
-    if (strlen(override->config_file) > 0)
-        strcpy(result->config_file, override->config_file);
-    if (strlen(override->output_file) > 0)
-        strcpy(result->output_file, override->output_file);
+    if (strlen(override->config_file) > 0) {
+        strncpy(result->config_file, override->config_file, sizeof(result->config_file) - 1);
+        result->config_file[sizeof(result->config_file) - 1] = '\0';
+    }
+    if (strlen(override->output_file) > 0) {
+        strncpy(result->output_file, override->output_file, sizeof(result->output_file) - 1);
+        result->output_file[sizeof(result->output_file) - 1] = '\0';
+    }
 
     // Advanced options
-    if (override->verbose_mode != 0)
+    if (override->verbose_mode != 0) {
         result->verbose_mode = override->verbose_mode;
-    if (override->debug_mode != 0)
+    }
+    if (override->debug_mode != 0) {
         result->debug_mode = override->debug_mode;
-    if (override->auto_save != 0)
+    }
+    if (override->auto_save != 0) {
         result->auto_save = override->auto_save;
-    if (override->validate_inputs != 1)
+    }
+    if (override->validate_inputs != 1) {
         result->validate_inputs = override->validate_inputs;
-    if (override->cache_size_mb != 16.0)
+    }
+    if (override->cache_size_mb != 16.0) {
         result->cache_size_mb = override->cache_size_mb;
-    if (override->max_threads != 1)
+    }
+    if (override->max_threads != 1) {
         result->max_threads = override->max_threads;
-    if (override->chunk_size != 1024)
+    }
+    if (override->chunk_size != 1024) {
         result->chunk_size = override->chunk_size;
-    if (override->memory_limit_mb != 256.0)
+    }
+    if (override->memory_limit_mb != 256.0) {
         result->memory_limit_mb = override->memory_limit_mb;
-
+    }
     return 0;
 }
 
 int simplex_get_config_string(const simplex_config_t* config, const char* key, char* value,
                               size_t max_len) {
-    if (!config || !key || !value || max_len == 0)
+    if (!config || !key || !value || max_len == 0) {
         return -1;
-
+    }
     if (strcmp(key, "prng_type") == 0) {
         snprintf(value, max_len, "%d", config->prng_type);
     } else if (strcmp(key, "noise_variant") == 0) {
@@ -873,9 +929,9 @@ int simplex_get_config_string(const simplex_config_t* config, const char* key, c
 }
 
 int simplex_set_config_string(simplex_config_t* config, const char* key, const char* value) {
-    if (!config || !key || !value)
+    if (!config || !key || !value) {
         return -1;
-
+    }
     if (strcmp(key, "prng_type") == 0) {
         config->prng_type = (simplex_prng_type_t)atoi(value);
     } else if (strcmp(key, "noise_variant") == 0) {
@@ -936,9 +992,9 @@ int simplex_set_config_string(simplex_config_t* config, const char* key, const c
 }
 
 int simplex_get_config_double(const simplex_config_t* config, const char* key, double* value) {
-    if (!config || !key || !value)
+    if (!config || !key || !value) {
         return -1;
-
+    }
     if (strcmp(key, "persistence") == 0) {
         *value = config->persistence;
     } else if (strcmp(key, "lacunarity") == 0) {
@@ -963,9 +1019,9 @@ int simplex_get_config_double(const simplex_config_t* config, const char* key, d
 }
 
 int simplex_set_config_double(simplex_config_t* config, const char* key, double value) {
-    if (!config || !key)
+    if (!config || !key) {
         return -1;
-
+    }
     if (strcmp(key, "persistence") == 0) {
         config->persistence = value;
     } else if (strcmp(key, "lacunarity") == 0) {
@@ -990,9 +1046,9 @@ int simplex_set_config_double(simplex_config_t* config, const char* key, double 
 }
 
 int simplex_get_config_int(const simplex_config_t* config, const char* key, int* value) {
-    if (!config || !key || !value)
+    if (!config || !key || !value) {
         return -1;
-
+    }
     if (strcmp(key, "prng_type") == 0) {
         *value = config->prng_type;
     } else if (strcmp(key, "noise_variant") == 0) {
@@ -1031,9 +1087,9 @@ int simplex_get_config_int(const simplex_config_t* config, const char* key, int*
 }
 
 int simplex_set_config_int(simplex_config_t* config, const char* key, int value) {
-    if (!config || !key)
+    if (!config || !key) {
         return -1;
-
+    }
     if (strcmp(key, "prng_type") == 0) {
         config->prng_type = (simplex_prng_type_t)value;
     } else if (strcmp(key, "noise_variant") == 0) {
@@ -1072,9 +1128,9 @@ int simplex_set_config_int(simplex_config_t* config, const char* key, int value)
 }
 
 int simplex_print_config(const simplex_config_t* config, int format) {
-    if (!config)
+    if (!config) {
         return -1;
-
+    }
     if (format == 0) {  // Compact format
         printf("Simplex Noise Configuration:\n");
         printf("  PRNG: %d, Variant: %d, Interp: %d, Precision: %d\n", config->prng_type,
@@ -1160,9 +1216,9 @@ int simplex_print_config(const simplex_config_t* config, int format) {
 }
 
 int simplex_create_example_config(const char* filename, simplex_config_type_t config_type) {
-    if (!filename)
+    if (!filename) {
         return -1;
-
+    }
     simplex_config_t config = simplex_get_default_config();
     return simplex_save_config(filename, config_type, &config);
 }
@@ -1170,8 +1226,9 @@ int simplex_create_example_config(const char* filename, simplex_config_type_t co
 /* ===== PERFORMANCE TRACKING ===== */
 
 int simplex_get_performance_stats(simplex_perf_stats_t* stats) {
-    if (!stats)
+    if (!stats) {
         return -1;
+    }
     *stats = perf_stats;
     return 0;
 }
@@ -1204,16 +1261,17 @@ int simplex_get_cache_misses(void) {
 #pragma GCC diagnostic ignored "-Wunused-function"
 
 static double cache_lookup(double x, double y, double z, double w) {
-    if (!cache_enabled)
+    if (!cache_enabled) {
         return 0.0;
+    }
 
-    int hash = ((int)(x * 1000) ^ (int)(y * 1000) ^ (int)(z * 1000) ^ (int)(w * 1000)) % CACHE_SIZE;
-    if (hash < 0)
+    int hash = ((int)(x * CACHE_HASH_MULTIPLIER) ^ (int)(y * CACHE_HASH_MULTIPLIER) ^ (int)(z * CACHE_HASH_MULTIPLIER) ^ (int)(w * CACHE_HASH_MULTIPLIER)) % CACHE_SIZE;
+    if (hash < 0) {
         hash = -hash;
-
-    if (noise_cache[hash].valid && fabs(noise_cache[hash].x - x) < 1e-9 &&
-        fabs(noise_cache[hash].y - y) < 1e-9 && fabs(noise_cache[hash].z - z) < 1e-9 &&
-        fabs(noise_cache[hash].w - w) < 1e-9) {
+    }
+    if (noise_cache[hash].valid &&         fabs(noise_cache[hash].x - x) < CACHE_EPSILON &&
+        fabs(noise_cache[hash].y - y) < CACHE_EPSILON && fabs(noise_cache[hash].z - z) < CACHE_EPSILON &&
+        fabs(noise_cache[hash].w - w) < CACHE_EPSILON) {
         cache_hits++;
         return noise_cache[hash].result;
     }
@@ -1223,13 +1281,13 @@ static double cache_lookup(double x, double y, double z, double w) {
 }
 
 static void cache_store(double x, double y, double z, double w, double result) {
-    if (!cache_enabled)
+    if (!cache_enabled) {
         return;
-
-    int hash = ((int)(x * 1000) ^ (int)(y * 1000) ^ (int)(z * 1000) ^ (int)(w * 1000)) % CACHE_SIZE;
-    if (hash < 0)
+    }
+    int hash = ((int)(x * CACHE_HASH_MULTIPLIER) ^ (int)(y * CACHE_HASH_MULTIPLIER) ^ (int)(z * CACHE_HASH_MULTIPLIER) ^ (int)(w * CACHE_HASH_MULTIPLIER)) % CACHE_SIZE;
+    if (hash < 0) {
         hash = -hash;
-
+    }
     noise_cache[hash].x = x;
     noise_cache[hash].y = y;
     noise_cache[hash].z = z;
@@ -1284,22 +1342,22 @@ static void init_permutation(unsigned int seed) {
     }
 
     // Initialize with values 0-255
-    for (int i = 0; i < 256; i++) {
+    for (int i = 0; i < PERMUTATION_SIZE; i++) {
         perm[i] = i;
     }
 
     // Simple linear congruential generator for shuffling
-    for (int i = 255; i > 0; i--) {
-        seed = seed * 1103515245 + 12345;
-        int j = seed % (i + 1);
+    for (int i = PERMUTATION_SIZE - 1; i > 0; i--) {
+        seed = seed * LCG_MULTIPLIER + LCG_INCREMENT;
+        int j = (int)(seed % (unsigned int)(i + 1));
         int temp = perm[i];
         perm[i] = perm[j];
         perm[j] = temp;
     }
 
     // Duplicate the permutation table for wrapping
-    for (int i = 0; i < 256; i++) {
-        perm[256 + i] = perm[i];
+    for (int i = 0; i < PERMUTATION_SIZE; i++) {
+        perm[PERMUTATION_SIZE + i] = perm[i];
     }
 }
 
@@ -1398,7 +1456,7 @@ double simplex_hybrid_multifractal_2d(double x, double y, int octaves, double pe
 // Domain Warping
 double simplex_domain_warp_2d(double x, double y, double warp_strength) {
     double warp_x = x + simplex_noise_2d(x, y) * warp_strength;
-    double warp_y = y + simplex_noise_2d(x + 100, y + 100) * warp_strength;
+    double warp_y = y + simplex_noise_2d(x + DOMAIN_WARP_OFFSET, y + DOMAIN_WARP_OFFSET) * warp_strength;
     return simplex_noise_2d(warp_x, warp_y);
 }
 
@@ -1406,9 +1464,9 @@ double simplex_domain_warp_2d(double x, double y, double warp_strength) {
 
 int simplex_noise_array_2d(double x_start, double y_start, int width, int height, double step,
                            double* output) {
-    if (!output || width <= 0 || height <= 0)
+    if (!output || width <= 0 || height <= 0) {
         return -1;
-
+    }
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             double noise_x = x_start + x * step;
@@ -1422,9 +1480,9 @@ int simplex_noise_array_2d(double x_start, double y_start, int width, int height
 
 int simplex_noise_array_3d(double x_start, double y_start, double z_start, int width, int height,
                            int depth, double step, double* output) {
-    if (!output || width <= 0 || height <= 0 || depth <= 0)
+    if (!output || width <= 0 || height <= 0 || depth <= 0) {
         return -1;
-
+    }
     for (int z = 0; z < depth; z++) {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
@@ -1474,7 +1532,7 @@ double simplex_noise_1d(double x) {
     double n0 = t0 * t0 * dot2d(grad2[perm[i0 & 0xff] & 7], x0, 0);
     double n1 = t1 * t1 * dot2d(grad2[perm[i1 & 0xff] & 7], x1, 0);
 
-    return 70.0 * (n0 + n1);
+    return SIMPLEX_2D_SCALE * (n0 + n1);
 }
 
 double simplex_noise_2d(double x, double y) {
@@ -1509,32 +1567,32 @@ double simplex_noise_2d(double x, double y) {
 
     int ii = i & 0xff;
     int jj = j & 0xff;
-    int gi0 = perm[ii + perm[jj]] % 8;
-    int gi1 = perm[ii + i1 + perm[jj + j1]] % 8;
-    int gi2 = perm[ii + 1 + perm[jj + 1]] % 8;
+    int gi0 = perm[ii + perm[jj]] % SIMPLEX_2D_GRAD_COUNT;
+    int gi1 = perm[ii + i1 + perm[jj + j1]] % SIMPLEX_2D_GRAD_COUNT;
+    int gi2 = perm[ii + 1 + perm[jj + 1]] % SIMPLEX_2D_GRAD_COUNT;
 
-    double t0 = 0.5 - x0 * x0 - y0 * y0;
+    double t0 = SIMPLEX_2D_THRESHOLD - x0 * x0 - y0 * y0;
     double n0 = 0.0;
     if (t0 >= 0) {
         t0 *= t0;
         n0 = t0 * t0 * dot2d(grad2[gi0], x0, y0);
     }
 
-    double t1 = 0.5 - x1 * x1 - y1 * y1;
+    double t1 = SIMPLEX_2D_THRESHOLD - x1 * x1 - y1 * y1;
     double n1 = 0.0;
     if (t1 >= 0) {
         t1 *= t1;
         n1 = t1 * t1 * dot2d(grad2[gi1], x1, y1);
     }
 
-    double t2 = 0.5 - x2 * x2 - y2 * y2;
+    double t2 = SIMPLEX_2D_THRESHOLD - x2 * x2 - y2 * y2;
     double n2 = 0.0;
     if (t2 >= 0) {
         t2 *= t2;
         n2 = t2 * t2 * dot2d(grad2[gi2], x2, y2);
     }
 
-    return 70.0 * (n0 + n1 + n2);
+    return SIMPLEX_2D_SCALE * (n0 + n1 + n2);
 }
 
 double simplex_noise_3d(double x, double y, double z) {
@@ -1652,7 +1710,7 @@ double simplex_noise_3d(double x, double y, double z) {
         n3 = t3 * t3 * dot3d(grad3[gi3], x3, y3, z3);
     }
 
-    return 32.0 * (n0 + n1 + n2 + n3);
+    return SIMPLEX_3D_SCALE * (n0 + n1 + n2 + n3);
 }
 
 double simplex_noise_4d(double x, double y, double z, double w) {
@@ -1777,7 +1835,7 @@ double simplex_noise_4d(double x, double y, double z, double w) {
         n4 = t4 * t4 * dot4d(grad4[gi4], x4, y4, z4, w4);
     }
 
-    return 27.0 * (n0 + n1 + n2 + n3 + n4);
+    return SIMPLEX_4D_SCALE * (n0 + n1 + n2 + n3 + n4);
 }
 
 double simplex_fractal_2d(double x, double y, int octaves, double persistence, double lacunarity) {

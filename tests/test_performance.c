@@ -10,7 +10,6 @@
  * @date 9/5/2025
  */
 
-#include <math.h>
 #include <simplex_noise.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,8 +26,8 @@ int main(void) {
     simplex_noise_init_advanced(&config);
 
     const int iterations = 100000;
-    clock_t start, end;
-    double time_taken;
+    clock_t start = 0, end = 0;
+    double time_taken = 0.0;
 
     // Test 1: 2D noise performance
     printf("Test 1: 2D noise performance...\n");
@@ -76,7 +75,8 @@ int main(void) {
 
     // Test 4: Array generation performance
     printf("Test 4: Array generation performance...\n");
-    const int width = 100, height = 100;
+    const int width = 100;
+    const int height = 100;
     double* noise_array = malloc(width * height * sizeof(double));
 
     start = clock();

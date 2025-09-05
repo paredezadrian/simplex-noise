@@ -21,7 +21,7 @@ int main(void) {
 
     // Test 1: Basic initialization
     printf("Test 1: Basic initialization...\n");
-    simplex_noise_init(12345);
+    simplex_noise_init(12345);  // NOLINT(readability-magic-numbers)
     printf("✓ Initialization successful\n\n");
 
     // Test 2: 1D noise generation
@@ -37,7 +37,7 @@ int main(void) {
 
     // Test 3: 2D noise generation
     printf("Test 3: 2D noise generation...\n");
-    double noise_2d = simplex_noise_2d(1.0, 2.0);
+    double noise_2d = simplex_noise_2d(1.0, 2.0);  // NOLINT(readability-magic-numbers)
     printf("2D noise at (1.0, 2.0): %.6f\n", noise_2d);
     if (noise_2d >= -1.0 && noise_2d <= 1.0) {
         printf("✓ 2D noise in valid range\n\n");

@@ -158,18 +158,20 @@ static int generate_noise_data(double* data, int width, int height,
 
 // Normalize data to 0-1 range
 static void normalize_noise_data(double* data, int count, int auto_normalize) {
-    if (!auto_normalize)
+    if (!auto_normalize) {
         return;
-
+    }
     double min_val = data[0];
     double max_val = data[0];
 
     // Find min/max
     for (int i = 1; i < count; i++) {
-        if (data[i] < min_val)
-            min_val = data[i];
-        if (data[i] > max_val)
-            max_val = data[i];
+        if (data[i] < min_val) {
+        min_val = data[i];
+    }
+        if (data[i] > max_val) {
+        max_val = data[i];
+    }
     }
 
     // Normalize to 0-1
@@ -277,9 +279,9 @@ void simplex_set_color_mode(simplex_image_config_t* config, simplex_color_mode_t
 }
 
 void simplex_normalize_data(double* data, size_t count, double min_val, double max_val) {
-    if (!data || count == 0)
+    if (!data || count == 0) {
         return;
-
+    }
     double range = max_val - min_val;
     if (range > 0) {
         for (size_t i = 0; i < count; i++) {
@@ -305,17 +307,17 @@ void simplex_noise_to_terrain(double noise_value, uint8_t* r, uint8_t* g, uint8_
 }
 
 int simplex_generate_2d_image(const simplex_image_config_t* config) {
-    if (!config)
+    if (!config) {
         return -1;
-
+    }
     // Initialize noise
     simplex_noise_init(config->seed);
 
     // Allocate memory
     double* noise_data = malloc(config->width * config->height * sizeof(double));
-    if (!noise_data)
+    if (!noise_data) {
         return -1;
-
+    }
     // Generate noise
     if (generate_noise_data(noise_data, config->width, config->height, config, 0.0) != 0) {
         free(noise_data);
@@ -379,17 +381,17 @@ int simplex_generate_2d_image(const simplex_image_config_t* config) {
 }
 
 int simplex_generate_3d_image(const simplex_image_config_t* config, double z_slice) {
-    if (!config)
+    if (!config) {
         return -1;
-
+    }
     // Initialize noise
     simplex_noise_init(config->seed);
 
     // Allocate memory
     double* noise_data = malloc(config->width * config->height * sizeof(double));
-    if (!noise_data)
+    if (!noise_data) {
         return -1;
-
+    }
     // Generate 3D noise slice
     for (int y = 0; y < config->height; y++) {
         for (int x = 0; x < config->width; x++) {
@@ -447,9 +449,9 @@ int simplex_generate_3d_image(const simplex_image_config_t* config, double z_sli
 }
 
 int simplex_generate_fractal_image(const simplex_image_config_t* config) {
-    if (!config)
+    if (!config) {
         return -1;
-
+    }
     // Force fractal mode
     simplex_image_config_t fractal_config = *config;
     fractal_config.octaves = (fractal_config.octaves > 1) ? fractal_config.octaves : 4;
@@ -458,9 +460,9 @@ int simplex_generate_fractal_image(const simplex_image_config_t* config) {
 }
 
 int simplex_generate_heightmap(const simplex_image_config_t* config) {
-    if (!config)
+    if (!config) {
         return -1;
-
+    }
     // Force heightmap mode
     simplex_image_config_t heightmap_config = *config;
     heightmap_config.color_mode = SIMPLEX_COLOR_HEIGHTMAP;
@@ -470,9 +472,9 @@ int simplex_generate_heightmap(const simplex_image_config_t* config) {
 }
 
 int simplex_generate_texture(const simplex_image_config_t* config) {
-    if (!config)
+    if (!config) {
         return -1;
-
+    }
     // Force texture mode
     simplex_image_config_t texture_config = *config;
     texture_config.color_mode = SIMPLEX_COLOR_TERRAIN;
@@ -483,9 +485,9 @@ int simplex_generate_texture(const simplex_image_config_t* config) {
 
 int simplex_generate_image_series(const simplex_image_config_t* base_config, int count,
                                   const double* scale_variations, const uint32_t* seed_variations) {
-    if (!base_config || count <= 0)
+    if (!base_config || count <= 0) {
         return -1;
-
+    }
     for (int i = 0; i < count; i++) {
         simplex_image_config_t config = *base_config;
 
@@ -512,9 +514,9 @@ int simplex_generate_image_series(const simplex_image_config_t* base_config, int
 
 int simplex_generate_animation(const simplex_image_config_t* config, int frame_count,
                                double time_step, const char* output_dir) {
-    if (!config || frame_count <= 0 || !output_dir)
+    if (!config || frame_count <= 0 || !output_dir) {
         return -1;
-
+    }
     for (int frame = 0; frame < frame_count; frame++) {
         simplex_image_config_t frame_config = *config;
 
