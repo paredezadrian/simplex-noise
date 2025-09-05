@@ -331,9 +331,11 @@ personal_*
 
 # Experimental files
 experimental/
-test_*
-*_test.c
-*_test.h
+# Note: test_*.c files in tests/ directory are tracked
+# Only ignore test executables and temporary test files
+test_*.exe
+test_*.out
+*_test_temp.*
 
 # =============================================================================
 # END OF .gitignore
