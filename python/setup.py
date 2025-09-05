@@ -112,7 +112,7 @@ def get_version():
 # Setup configuration
 setup(
     name="simplex-noise",
-    version="1.0.0",
+    version="1.0.1",
     author="Adrian Paredez",
     author_email="adrian@example.com",  # Replace with actual email
     description="Python wrapper for Pure C Simplex Noise library",

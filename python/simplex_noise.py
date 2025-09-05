@@ -670,6 +670,6 @@ def generate_terrain(
 
 
 # Version info
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 __author__ = "Adrian Paredez"
 __license__ = "MIT"
