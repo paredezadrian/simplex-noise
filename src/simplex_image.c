@@ -13,9 +13,9 @@
  * @date 9/5/2025
  */
 
+#include "../include/simplex_image.h"
+#include "../include/simplex_noise.h"
 #include <math.h>
-#include <simplex_image.h>
-#include <simplex_noise.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -107,19 +107,19 @@ static void noise_to_heightmap(double noise, uint8_t* r, uint8_t* g, uint8_t* b)
         *b = (uint8_t)(TERRAIN_WATER_B_SCALE);
     } else if (normalized < TERRAIN_SAND_THRESHOLD) {
         // Sand - yellow
-        *r = (uint8_t)(TERRAIN_SAND_R_BASE + normalized * TERRAIN_SAND_R_SCALE);
-        *g = (uint8_t)(TERRAIN_SAND_G_BASE + normalized * TERRAIN_SAND_G_SCALE);
-        *b = (uint8_t)(TERRAIN_SAND_B_BASE + normalized * TERRAIN_SAND_B_SCALE);
+        *r = (uint8_t)(TERRAIN_SAND_R_BASE + (normalized * TERRAIN_SAND_R_SCALE));
+        *g = (uint8_t)(TERRAIN_SAND_G_BASE + (normalized * TERRAIN_SAND_G_SCALE));
+        *b = (uint8_t)(TERRAIN_SAND_B_BASE + (normalized * TERRAIN_SAND_B_SCALE));
     } else if (normalized < TERRAIN_GRASS_THRESHOLD) {
         // Grass - green
         *r = (uint8_t)(normalized * TERRAIN_GRASS_R_SCALE);
-        *g = (uint8_t)(TERRAIN_GRASS_G_BASE + normalized * TERRAIN_GRASS_G_SCALE);
+        *g = (uint8_t)(TERRAIN_GRASS_G_BASE + (normalized * TERRAIN_GRASS_G_SCALE));
         *b = (uint8_t)(normalized * TERRAIN_GRASS_B_SCALE);
     } else if (normalized < TERRAIN_MOUNTAIN_THRESHOLD) {
         // Rock - gray
-        *r = (uint8_t)(TERRAIN_ROCK_BASE + normalized * TERRAIN_ROCK_SCALE);
-        *g = (uint8_t)(TERRAIN_ROCK_BASE + normalized * TERRAIN_ROCK_SCALE);
-        *b = (uint8_t)(TERRAIN_ROCK_BASE + normalized * TERRAIN_ROCK_SCALE);
+        *r = (uint8_t)(TERRAIN_ROCK_BASE + (normalized * TERRAIN_ROCK_SCALE));
+        *g = (uint8_t)(TERRAIN_ROCK_BASE + (normalized * TERRAIN_ROCK_SCALE));
+        *b = (uint8_t)(TERRAIN_ROCK_BASE + (normalized * TERRAIN_ROCK_SCALE));
     } else {
         // Snow - white
         *r = TERRAIN_SNOW_R_SCALE;
@@ -135,27 +135,27 @@ static void noise_to_terrain(double noise, uint8_t* r, uint8_t* g, uint8_t* b) {
         // Deep water
         *r = 0;
         *g = 0;
-        *b = (uint8_t)(100 + normalized * 100);
+        *b = (uint8_t)(100 + (normalized * 100));
     } else if (normalized < 0.4) {
         // Shallow water
         *r = 0;
-        *g = (uint8_t)(50 + normalized * 100);
-        *b = (uint8_t)(150 + normalized * 50);
+        *g = (uint8_t)(50 + (normalized * 100));
+        *b = (uint8_t)(150 + (normalized * 50));
     } else if (normalized < 0.6) {
         // Beach/sand
-        *r = (uint8_t)(200 + normalized * 55);
-        *g = (uint8_t)(180 + normalized * 75);
-        *b = (uint8_t)(100 + normalized * 50);
+        *r = (uint8_t)(200 + (normalized * 55));
+        *g = (uint8_t)(180 + (normalized * 75));
+        *b = (uint8_t)(100 + (normalized * 50));
     } else if (normalized < 0.8) {
         // Forest
         *r = (uint8_t)(normalized * 50);
-        *g = (uint8_t)(80 + normalized * 120);
+        *g = (uint8_t)(80 + (normalized * 120));
         *b = (uint8_t)(normalized * 30);
     } else {
         // Mountain peaks
-        *r = (uint8_t)(150 + normalized * 105);
-        *g = (uint8_t)(150 + normalized * 105);
-        *b = (uint8_t)(150 + normalized * 105);
+        *r = (uint8_t)(150 + (normalized * 105));
+        *g = (uint8_t)(150 + (normalized * 105));
+        *b = (uint8_t)(150 + (normalized * 105));
     }
 }
 
@@ -168,7 +168,7 @@ static int generate_noise_data(double* data, int width, int height,
             double noise_x = (x + config->offset_x) * config->scale;
             double noise_y = (y + config->offset_y) * config->scale;
 
-            double noise_value;
+            double noise_value = NAN;
 
             if (config->octaves > 1) {
                 // Fractal noise
@@ -179,7 +179,7 @@ static int generate_noise_data(double* data, int width, int height,
                 noise_value = simplex_noise_2d(noise_x, noise_y);
             }
 
-            data[y * width + x] = noise_value;
+            data[(y * width) + x] = noise_value;
         }
     }
 

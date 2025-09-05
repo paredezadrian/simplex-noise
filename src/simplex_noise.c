@@ -15,7 +15,7 @@
  * @date 9/5/2025
  */
 
-#include "simplex_noise.h"
+#include "../include/simplex_noise.h"
 #include <ctype.h>
 #include <limits.h>
 #include <math.h>
