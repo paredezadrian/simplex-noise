@@ -6,6 +6,10 @@ echo ""
 
 source mkdocs-env/bin/activate
 
+# Install dependencies if not already installed
+echo "Installing dependencies..."
+pip install -r requirements.txt > /dev/null 2>&1
+
 # Build the site
 echo "Building documentation..."
 mkdocs build
