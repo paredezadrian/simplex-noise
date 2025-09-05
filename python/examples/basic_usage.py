@@ -6,7 +6,6 @@ This example demonstrates the basic usage of the simplex noise library.
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
 from simplex_noise import SimplexNoise, noise_2d, fractal_2d, generate_terrain
 
 

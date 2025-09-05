@@ -12,10 +12,8 @@ License: MIT
 
 import ctypes
 import os
-import sys
 import numpy as np
-from typing import Union, Tuple, Optional, List
-from pathlib import Path
+from typing import Union, Optional
 
 # Try to import PIL for image generation
 try:

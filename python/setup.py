@@ -7,9 +7,7 @@ This script allows easy installation of the Python wrapper for the simplex noise
 
 from setuptools import setup, find_packages
 import os
-import sys
 import subprocess
-import platform
 
 
 # Read the README file
@@ -112,7 +110,7 @@ def get_version():
             for line in f:
                 if line.startswith("__version__"):
                     return line.split("=")[1].strip().strip("\"'")
-    except:
+    except (FileNotFoundError, ValueError, IndexError):
         pass
     return "1.0.0"
 
