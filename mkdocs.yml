@@ -1,0 +1,91 @@
+site_name: Simplex Noise Library
+site_description: Professional Pure C implementation of Simplex Noise algorithm
+site_author: Adrian Paredez
+site_url: https://paredezadrian.github.io/simplex-noise
+repo_url: https://github.com/paredezadrian/simplex-noise
+repo_name: paredezadrian/simplex-noise
+
+theme:
+  name: material
+  palette:
+    primary: blue
+    accent: light blue
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+    - content.code.annotate
+    - navigation.footer
+    - navigation.indexes
+    - navigation.instant
+    - navigation.tracking
+    - toc.follow
+    - toc.integrate
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - admonition
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - tables
+  - attr_list
+  - md_in_html
+
+nav:
+  - Home: README.md
+  - Documentation:
+      - Overview: overview.md
+      - Getting Started: getting-started.md
+      - API Reference: api-reference.md
+      - Examples: examples.md
+      - Configuration: configuration.md
+      - Performance: performance.md
+      - Image Generation: image-generation.md
+      - Advanced Usage: advanced-usage.md
+      - Build System: build-system.md
+      - Contributing: contributing.md
+
+plugins:
+  - search
+  - git-revision-date-localized:
+      enable_creation_date: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/paredezadrian
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/paredezadrian
+  version:
+    provider: mike
+
+copyright: Copyright &copy; 2025 Adrian Paredez
