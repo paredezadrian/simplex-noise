@@ -73,6 +73,7 @@ nav:
       - Advanced Usage: advanced-usage.md
       - Build System: build-system.md
       - Contributing: contributing.md
+  - License: LICENSE.md
 
 plugins:
   - search

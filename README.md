@@ -44,7 +44,7 @@ double fractal = simplex_fractal_2d(1.0, 2.0, 4, 0.5, 2.0);
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](../LICENSE.md) file for details.
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
 
 ## Author
 
