@@ -25,6 +25,7 @@ option(SIMPLEX_BUILD_SHARED "Build shared library" ON)
 option(SIMPLEX_BUILD_STATIC "Build static library" ON)
 option(SIMPLEX_BUILD_TESTS "Build test programs" ON)
 option(SIMPLEX_BUILD_EXAMPLES "Build example programs" ON)
+option(SIMPLEX_BUILD_PYTHON "Build Python bindings" ON)
 option(SIMPLEX_ENABLE_SIMD "Enable SIMD optimizations" OFF)
 option(SIMPLEX_ENABLE_PROFILING "Enable performance profiling" OFF)
 
@@ -54,7 +55,7 @@ if(SIMPLEX_ENABLE_SIMD)
     check_c_compiler_flag("-mavx2" COMPILER_SUPPORTS_AVX2)
     check_c_compiler_flag("-msse4.1" COMPILER_SUPPORTS_SSE41)
     check_c_compiler_flag("-mneon" COMPILER_SUPPORTS_NEON)
-    
+
     if(COMPILER_SUPPORTS_AVX2)
         list(APPEND SIMPLEX_DEFINITIONS SIMPLEX_HAVE_AVX2)
         add_compile_options(-mavx2)
@@ -93,7 +94,7 @@ if(SIMPLEX_BUILD_SHARED)
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
     )
-    
+
     # Link math library on Unix systems
     if(UNIX)
         target_link_libraries(simplex_noise_shared m)
@@ -110,19 +111,19 @@ endif()
 # Build test programs
 if(SIMPLEX_BUILD_TESTS)
     enable_testing()
-    
+
     # Basic functionality test
     add_executable(test_basic tests/test_basic.c)
     target_link_libraries(test_basic simplex_noise m)
-    
+
     # Configuration system test
     add_executable(test_config tests/test_config.c)
     target_link_libraries(test_config simplex_noise m)
-    
+
     # Performance benchmark test
     add_executable(test_performance tests/test_performance.c)
     target_link_libraries(test_performance simplex_noise m)
-    
+
     # Add tests to CTest
     add_test(NAME basic_functionality COMMAND test_basic)
     add_test(NAME configuration_system COMMAND test_config)
@@ -134,22 +135,91 @@ if(SIMPLEX_BUILD_EXAMPLES)
     # 2D noise example
     add_executable(example_2d examples/example_2d.c)
     target_link_libraries(example_2d simplex_noise m)
-    
+
     # 3D noise example
     add_executable(example_3d examples/example_3d.c)
     target_link_libraries(example_3d simplex_noise m)
-    
+
     # Configuration example
     add_executable(example_config examples/example_config.c)
     target_link_libraries(example_config simplex_noise m)
-    
+
     # Fractal noise example
     add_executable(example_fractal examples/example_fractal.c)
     target_link_libraries(example_fractal simplex_noise m)
-    
+
     # Image generation example
     add_executable(example_image examples/example_image.c)
     target_link_libraries(example_image simplex_noise m)
+endif()
+
+# Build Python bindings
+if(SIMPLEX_BUILD_PYTHON)
+    find_package(Python3 COMPONENTS Interpreter Development)
+    if(Python3_FOUND)
+        # Find NumPy
+        find_package(Python3 COMPONENTS NumPy)
+        if(Python3_NumPy_FOUND)
+            message(STATUS "Found Python ${Python3_VERSION} with NumPy ${Python3_NumPy_VERSION}")
+
+            # Create Python package directory
+            file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/python)
+
+            # Copy Python wrapper files
+            configure_file(
+                ${CMAKE_CURRENT_SOURCE_DIR}/python/simplex_noise.py
+                ${CMAKE_CURRENT_BINARY_DIR}/python/simplex_noise.py
+                COPYONLY
+            )
+
+            configure_file(
+                ${CMAKE_CURRENT_SOURCE_DIR}/python/setup.py
+                ${CMAKE_CURRENT_BINARY_DIR}/python/setup.py
+                COPYONLY
+            )
+
+            configure_file(
+                ${CMAKE_CURRENT_SOURCE_DIR}/python/requirements.txt
+                ${CMAKE_CURRENT_BINARY_DIR}/python/requirements.txt
+                COPYONLY
+            )
+
+            # Copy examples and tests
+            file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/python/examples
+                 DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/python)
+            file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/python/tests
+                 DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/python)
+
+            # Create Python installation target
+            add_custom_target(python_install
+                COMMAND ${Python3_EXECUTABLE} -m pip install -e .
+                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/python
+                DEPENDS simplex_noise_shared
+                COMMENT "Installing Python wrapper"
+            )
+
+            # Create Python test target
+            add_custom_target(python_test
+                COMMAND ${Python3_EXECUTABLE} -m pytest tests/ -v
+                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/python
+                DEPENDS python_install
+                COMMENT "Running Python tests"
+            )
+
+            # Create Python example target
+            add_custom_target(python_examples
+                COMMAND ${Python3_EXECUTABLE} examples/basic_usage.py
+                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/python
+                DEPENDS python_install
+                COMMENT "Running Python examples"
+            )
+
+        else()
+            message(WARNING "NumPy not found. Python bindings will not be built.")
+        endif()
+    else()
+        message(WARNING "Python not found. Python bindings will not be built.")
+    endif()
 endif()
 
 # Installation
@@ -161,7 +231,7 @@ if(SIMPLEX_BUILD_SHARED)
     install(TARGETS simplex_noise_shared DESTINATION lib)
 endif()
 
-install(FILES 
+install(FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/include/simplex_noise.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/simplex_image.h
     DESTINATION include
@@ -204,7 +274,7 @@ option(SIMPLEX_ENABLE_FORMATTING "Enable clang-format and clang-tidy" ON)
 if(SIMPLEX_ENABLE_FORMATTING)
     find_program(CLANG_FORMAT clang-format)
     find_program(CLANG_TIDY clang-tidy)
-    
+
     if(CLANG_FORMAT)
         add_custom_target(format
             COMMAND ${CLANG_FORMAT} -i src/*.c include/*.h examples/*.c tests/*.c
@@ -212,7 +282,7 @@ if(SIMPLEX_ENABLE_FORMATTING)
             COMMENT "Formatting code with clang-format"
         )
     endif()
-    
+
     if(CLANG_TIDY)
         add_custom_target(tidy
             COMMAND ${CLANG_TIDY} src/*.c include/*.h examples/*.c tests/*.c -- -Iinclude -std=c99
@@ -220,7 +290,7 @@ if(SIMPLEX_ENABLE_FORMATTING)
             COMMENT "Running clang-tidy analysis"
         )
     endif()
-    
+
     if(CLANG_FORMAT AND CLANG_TIDY)
         add_custom_target(format-check
             COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/format-code.sh
@@ -252,6 +322,7 @@ message(STATUS "  Build shared library: ${SIMPLEX_BUILD_SHARED}")
 message(STATUS "  Build static library: ${SIMPLEX_BUILD_STATIC}")
 message(STATUS "  Build tests: ${SIMPLEX_BUILD_TESTS}")
 message(STATUS "  Build examples: ${SIMPLEX_BUILD_EXAMPLES}")
+message(STATUS "  Build Python bindings: ${SIMPLEX_BUILD_PYTHON}")
 message(STATUS "  Enable SIMD: ${SIMPLEX_ENABLE_SIMD}")
 message(STATUS "  Enable profiling: ${SIMPLEX_ENABLE_PROFILING}")
 message(STATUS "  Build documentation: ${SIMPLEX_BUILD_DOCS}")

@@ -1,0 +1,9 @@
+# Python requirements for the simplex noise library
+numpy
+Pillow
+
+# Optional development dependencies
+# pytest
+# pytest-cov
+# matplotlib
+# ruff

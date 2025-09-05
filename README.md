@@ -24,6 +24,7 @@ Simplex noise is an improved version of Perlin noise that's faster and produces 
 - **Image generation** - Create PNG and PPM images from noise patterns
 - **Flexible configuration** - Customizable parameters and multiple PRNG algorithms
 - **Cross-platform** - Works on Windows, macOS, Linux, and more
+- **Python bindings** - Easy-to-use Python wrapper with NumPy integration
 
 ### Noise Variants
 
@@ -37,6 +38,8 @@ Simplex noise is an improved version of Perlin noise that's faster and produces 
 
 ### Installation
 
+#### C Library
+
 ```bash
 git clone https://github.com/paredezadrian/simplex-noise.git
 cd simplex-noise
@@ -46,7 +49,17 @@ make -j$(nproc)
 sudo make install
 ```
 
+#### Python Bindings
+
+```bash
+# Build the C library first (see above)
+cd python
+pip install -e .
+```
+
 ### Basic Usage
+
+#### C Library
 
 ```c
 #include <simplex_noise.h>
@@ -66,6 +79,33 @@ int main() {
 
     return 0;
 }
+```
+
+#### Python Bindings
+
+```python
+from simplex_noise import SimplexNoise
+import numpy as np
+
+# Initialize noise generator
+noise = SimplexNoise(seed=42)
+
+# Generate single values
+value = noise.noise_2d(1.0, 2.0)
+print(f"2D noise: {value}")
+
+# Generate arrays
+x = np.linspace(0, 10, 100)
+y = np.linspace(0, 10, 100)
+X, Y = np.meshgrid(x, y)
+noise_array = noise.noise_2d(X, Y)
+
+# Generate fractal noise
+fractal = noise.fractal_2d(X, Y, octaves=4, persistence=0.5, lacunarity=2.0)
+
+# Generate images
+noise.generate_image("terrain.png", width=512, height=512,
+                    color_mode="heightmap", octaves=6)
 ```
 
 ### Advanced Configuration

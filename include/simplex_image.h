@@ -32,7 +32,7 @@ static const size_t SIMPLEX_MAX_FILENAME_LEN = 256;
 /**
  * @brief Supported image formats
  */
-typedef enum : uint8_t {
+typedef enum {
     SIMPLEX_IMAGE_PNG = 0, /**< PNG format (requires libpng) */
     SIMPLEX_IMAGE_PPM,     /**< PPM format (portable pixmap) */
     SIMPLEX_IMAGE_PGM,     /**< PGM format (portable graymap) */
@@ -43,7 +43,7 @@ typedef enum : uint8_t {
 /**
  * @brief Color modes for image generation
  */
-typedef enum : uint8_t {
+typedef enum {
     SIMPLEX_COLOR_GRAYSCALE = 0, /**< Grayscale (single channel) */
     SIMPLEX_COLOR_RGB,           /**< RGB color (3 channels) */
     SIMPLEX_COLOR_RGBA,          /**< RGBA color (4 channels) */
@@ -71,7 +71,7 @@ typedef struct {
     double max_value;                /**< Maximum noise value for normalization */
     int auto_normalize;              /**< Auto-normalize noise values to 0-1 */
     uint32_t seed;                   /**< Random seed for noise generation */
-    char filename[SIMPLEX_MAX_FILENAME_LEN]; /**< Output filename */
+    char filename[256]; /**< Output filename */
 } simplex_image_config_t;
 
 /* ===== CORE IMAGE FUNCTIONS ===== */
