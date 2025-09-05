@@ -34,10 +34,12 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 # Source files
 set(SIMPLEX_SOURCES
     src/simplex_noise.c
+    src/simplex_image.c
 )
 
 set(SIMPLEX_HEADERS
     include/simplex_noise.h
+    include/simplex_image.h
 )
 
 # Include directories
@@ -144,6 +146,10 @@ if(SIMPLEX_BUILD_EXAMPLES)
     # Fractal noise example
     add_executable(example_fractal examples/example_fractal.c)
     target_link_libraries(example_fractal simplex_noise m)
+    
+    # Image generation example
+    add_executable(example_image examples/example_image.c)
+    target_link_libraries(example_image simplex_noise m)
 endif()
 
 # Installation
@@ -155,7 +161,9 @@ if(SIMPLEX_BUILD_SHARED)
     install(TARGETS simplex_noise_shared DESTINATION lib)
 endif()
 
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/simplex_noise.h
+install(FILES 
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/simplex_noise.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/simplex_image.h
     DESTINATION include
 )
 

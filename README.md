@@ -20,6 +20,7 @@ Simplex noise is an improved version of Perlin noise that's faster and produces 
 - **Multi-dimensional noise** - 1D, 2D, 3D, and 4D generation
 - **Multiple noise types** - Classic, ridged, billowy, and fractal variants
 - **High performance** - Over 28 million samples per second for 2D noise
+- **Image generation** - Create PNG and PPM images from noise patterns
 - **Flexible configuration** - Customizable parameters and multiple PRNG algorithms
 - **Cross-platform** - Works on Windows, macOS, Linux, and more
 
@@ -103,7 +104,42 @@ cd build
 ./example_3d      # 3D noise slice visualization
 ./example_config  # Configuration system demo
 ./example_fractal # Different fractal noise types
+./example_image   # Generate noise images (PNG/PPM)
 ```
+
+## Image Generation
+
+Create beautiful images from noise patterns:
+
+### Basic Usage
+```c
+#include <simplex_image.h>
+
+int main() {
+    // Create image configuration
+    simplex_image_config_t config = simplex_get_default_image_config();
+    simplex_set_image_size(&config, 512, 512);
+    simplex_set_image_filename(&config, "my_noise.ppm");
+    simplex_set_color_mode(&config, SIMPLEX_COLOR_HEIGHTMAP);
+    
+    // Generate image
+    simplex_generate_2d_image(&config);
+    
+    return 0;
+}
+```
+
+### Image Types
+- **Grayscale** - Classic black and white noise
+- **RGB** - Color noise patterns
+- **Heightmaps** - Terrain-like visualizations
+- **Terrain** - Natural landscape colors
+- **3D Slices** - Cross-sections of 3D noise
+
+### Supported Formats
+- **PPM** - Portable pixmap (widely supported)
+- **PGM** - Portable graymap (grayscale)
+- **PNG** - Portable Network Graphics (with libpng)
 
 ## Performance
 
