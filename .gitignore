@@ -1,0 +1,368 @@
+# Simplex Noise Library - .gitignore
+# Generated for C project with CMake, Autotools, and Meson build systems
+
+# =============================================================================
+# BUILD ARTIFACTS
+# =============================================================================
+
+# CMake build directories
+build/
+build-*/
+cmake-build-*/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+!*.cmake.in
+
+# Autotools build artifacts
+Makefile.in
+aclocal.m4
+autom4te.cache/
+config.h
+config.h.in
+config.log
+config.status
+configure
+configure.ac.bak
+.deps/
+.dirstamp
+.libs/
+*.la
+*.lo
+*.o
+*.so
+*.so.*
+*.a
+*.dylib
+*.dll
+*.exe
+stamp-h1
+install-sh
+missing
+depcomp
+compile
+config.guess
+config.sub
+ltmain.sh
+m4/
+build-aux/
+
+# Meson build artifacts
+builddir/
+meson-logs/
+meson-private/
+compile_commands.json
+
+# =============================================================================
+# COMPILED BINARIES
+# =============================================================================
+
+# Executables
+test_basic
+test_config
+test_performance
+example_2d
+example_3d
+example_config
+example_fractal
+simplex_example
+simplex_demo
+
+# Libraries
+libsimplex_noise.a
+libsimplex_noise.so
+libsimplex_noise.so.*
+libsimplex_noise.dll
+libsimplex_noise.dylib
+
+# Object files
+*.o
+*.obj
+*.ko
+*.elf
+
+# =============================================================================
+# CONFIGURATION FILES
+# =============================================================================
+
+# Generated configuration files
+simplex_noise.pc
+config.h
+config.h.in~
+
+# Temporary configuration files
+*.ini.tmp
+*.json.tmp
+*.yaml.tmp
+
+# =============================================================================
+# TEST OUTPUTS
+# =============================================================================
+
+# Test results
+test-results/
+test-output/
+*.test
+*.log
+
+# Performance test outputs
+perf-*.txt
+benchmark-*.txt
+profile-*.txt
+
+# =============================================================================
+# GENERATED DOCUMENTATION
+# =============================================================================
+
+# Doxygen output
+html/
+latex/
+man/
+xml/
+*.dox
+
+# Generated documentation
+docs/html/
+docs/latex/
+docs/man/
+
+# =============================================================================
+# PACKAGE FILES
+# =============================================================================
+
+# Distribution packages
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.zip
+*.deb
+*.rpm
+*.dmg
+*.pkg
+*.msi
+
+# Package manager files
+conanfile.txt
+conanfile.py
+vcpkg.json
+vcpkg_installed/
+
+# =============================================================================
+# IDE AND EDITOR FILES
+# =============================================================================
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Visual Studio
+.vs/
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.sln
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# CLion
+.idea/
+*.iml
+*.iws
+
+# Eclipse
+.project
+.cproject
+.settings/
+.metadata/
+
+# Code::Blocks
+*.cbp
+*.layout
+*.depend
+
+# Dev-C++
+*.dev
+
+# KDevelop
+.kdev4/
+*.kdev4
+
+# Qt Creator
+*.pro.user
+*.pro.user.*
+*.qbs.user
+*.qbs.user.*
+*.moc
+moc_*.cpp
+moc_*.h
+qrc_*.cpp
+ui_*.h
+*.qmlc
+*.jsc
+Makefile*
+*before_install*
+*_after_install*
+
+# =============================================================================
+# SYSTEM FILES
+# =============================================================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# =============================================================================
+# TEMPORARY FILES
+# =============================================================================
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+*.rej
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# Core dumps
+core
+core.*
+*.core
+
+# =============================================================================
+# NOISE GENERATION OUTPUTS
+# =============================================================================
+
+# Generated noise images
+*.png
+*.jpg
+*.jpeg
+*.bmp
+*.tga
+*.ppm
+*.pgm
+
+# Generated noise data
+*.csv
+*.dat
+*.bin
+*.raw
+
+# Heightmaps and textures
+heightmap-*
+texture-*
+noise-*
+
+# =============================================================================
+# PROFILING AND DEBUGGING
+# =============================================================================
+
+# Profiling outputs
+*.prof
+*.gprof
+*.callgrind
+*.cachegrind
+*.massif
+*.dhat
+
+# Debug symbols
+*.pdb
+*.dSYM/
+*.su
+*.idb
+*.ilk
+
+# Memory debugging
+valgrind-*
+memcheck-*
+
+# =============================================================================
+# VERSION CONTROL
+# =============================================================================
+
+# Git
+*.orig
+*.rej
+
+# SVN
+.svn/
+
+# Mercurial
+.hg/
+.hgignore
+
+# =============================================================================
+# CUSTOM PROJECT FILES
+# =============================================================================
+
+# Local configuration overrides
+local_config.h
+local_config.ini
+local_config.json
+
+# User-specific files
+user_*.c
+user_*.h
+personal_*
+
+# Experimental files
+experimental/
+test_*
+*_test.c
+*_test.h
+
+# =============================================================================
+# END OF .gitignore
+# =============================================================================
