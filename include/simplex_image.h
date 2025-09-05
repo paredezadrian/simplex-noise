@@ -71,7 +71,7 @@ typedef struct {
     double max_value;                /**< Maximum noise value for normalization */
     int auto_normalize;              /**< Auto-normalize noise values to 0-1 */
     uint32_t seed;                   /**< Random seed for noise generation */
-    char filename[256]; /**< Output filename */
+    char filename[256];              /**< Output filename */
 } simplex_image_config_t;
 
 /* ===== CORE IMAGE FUNCTIONS ===== */

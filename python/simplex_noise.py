@@ -158,7 +158,7 @@ class SimplexNoise:
         # Configuration functions (these don't exist in the current C library)
         # self._lib.simplex_config_set_seed.argtypes = [ctypes.c_uint]
         # self._lib.simplex_config_set_seed.restype = None
-        
+
         # self._lib.simplex_config_get_seed.argtypes = []
         # self._lib.simplex_config_get_seed.restype = ctypes.c_uint
 

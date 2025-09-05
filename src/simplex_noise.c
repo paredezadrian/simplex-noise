@@ -50,11 +50,7 @@ enum {
 #define SIMPLEX_2D_SCALE 70.0
 #define SIMPLEX_3D_SCALE 32.0
 #define SIMPLEX_4D_SCALE 27.0
-enum {
-    SIMPLEX_2D_GRAD_COUNT = 8,
-    SIMPLEX_3D_GRAD_COUNT = 12,
-    SIMPLEX_4D_GRAD_COUNT = 32
-};
+enum { SIMPLEX_2D_GRAD_COUNT = 8, SIMPLEX_3D_GRAD_COUNT = 12, SIMPLEX_4D_GRAD_COUNT = 32 };
 #define SIMPLEX_2D_THRESHOLD 0.5
 #define SIMPLEX_3D_THRESHOLD 0.6
 #define SIMPLEX_4D_THRESHOLD 0.6
@@ -75,12 +71,15 @@ enum {
 /* ===== GLOBAL STATE MANAGEMENT ===== */
 
 // Global permutation table
-static int perm[PERMUTATION_DOUBLE_SIZE];  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-static int initialized = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+static int
+    perm[PERMUTATION_DOUBLE_SIZE];  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+static int initialized = 0;         // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 // Advanced configuration
-static simplex_config_t global_config;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-static simplex_perf_stats_t perf_stats;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+static simplex_config_t
+    global_config;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+static simplex_perf_stats_t
+    perf_stats;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 // PRNG state for different algorithms
 static struct {
@@ -93,21 +92,20 @@ static struct {
 } prng_state;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 // Caching system
-enum {
-CACHE_SIZE = 1024
-};
+enum { CACHE_SIZE = 1024 };
 static struct {
     double x, y, z, w;
     double result;
     int valid;
-} noise_cache[CACHE_SIZE];  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+} noise_cache[CACHE_SIZE];     // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 static int cache_enabled = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-static int cache_hits = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-static int cache_misses = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+static int cache_hits = 0;     // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+static int cache_misses = 0;   // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 // Performance tracking
 static int profiling_enabled = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-static size_t function_call_count = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+static size_t function_call_count =
+    0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 // Gradients for 2D noise
 static const double grad2[8][2] = {{1, 1}, {-1, 1}, {1, -1}, {-1, -1},
@@ -140,10 +138,11 @@ static uint32_t lcg_next(void) {
 static void mersenne_init(uint32_t seed) {
     prng_state.mersenne_state[0] = seed;
     for (int i = 1; i < MERSENNE_STATE_SIZE; i++) {
-        prng_state.mersenne_state[i] = (MERSENNE_MULTIPLIER * (prng_state.mersenne_state[i - 1] ^
-                                                      (prng_state.mersenne_state[i - 1] >> MERSENNE_SHIFT_BITS)) +
-                                        i) &
-                                       MERSENNE_MASK;
+        prng_state.mersenne_state[i] =
+            (MERSENNE_MULTIPLIER * (prng_state.mersenne_state[i - 1] ^
+                                    (prng_state.mersenne_state[i - 1] >> MERSENNE_SHIFT_BITS)) +
+             i) &
+            MERSENNE_MASK;
     }
     prng_state.mersenne_index = 0;
 }
@@ -152,7 +151,8 @@ static void mersenne_generate(void) {
     for (int i = 0; i < MERSENNE_STATE_SIZE; i++) {
         uint32_t y = (prng_state.mersenne_state[i] & MERSENNE_MSB_MASK) +
                      (prng_state.mersenne_state[(i + 1) % MERSENNE_STATE_SIZE] & MERSENNE_LSB_MASK);
-        prng_state.mersenne_state[i] = prng_state.mersenne_state[(i + MERSENNE_OFFSET) % MERSENNE_STATE_SIZE] ^ (y >> 1);
+        prng_state.mersenne_state[i] =
+            prng_state.mersenne_state[(i + MERSENNE_OFFSET) % MERSENNE_STATE_SIZE] ^ (y >> 1);
         if (y % 2) {
             prng_state.mersenne_state[i] ^= MERSENNE_XOR_MASK;
         }
@@ -430,8 +430,8 @@ static int load_ini_config(const char* filename, simplex_config_t* config) {
 
         // Skip comments and empty lines
         if (line[0] == '#' || line[0] == ';' || line[0] == '\0') {
-        continue;
-    }
+            continue;
+        }
         if (parse_key_value(line, key, value, sizeof(key)) == 0) {
             // Parse configuration values
             if (strcmp(key, "prng_type") == 0) {
@@ -553,8 +553,8 @@ static int load_json_config(const char* filename, simplex_config_t* config) {
 
         // Skip comments and empty lines
         if (line[0] == '/' || line[0] == '*' || line[0] == '\0') {
-        continue;
-    }
+            continue;
+        }
         // Simple JSON key-value parser
         if (strstr(line, "\"prng_type\"") && strchr(line, ':')) {
             int temp = 0;
@@ -1287,12 +1287,15 @@ static double cache_lookup(double x, double y, double z, double w) {
         return 0.0;
     }
 
-    int hash = ((int)(x * CACHE_HASH_MULTIPLIER) ^ (int)(y * CACHE_HASH_MULTIPLIER) ^ (int)(z * CACHE_HASH_MULTIPLIER) ^ (int)(w * CACHE_HASH_MULTIPLIER)) % CACHE_SIZE;
+    int hash = ((int)(x * CACHE_HASH_MULTIPLIER) ^ (int)(y * CACHE_HASH_MULTIPLIER) ^
+                (int)(z * CACHE_HASH_MULTIPLIER) ^ (int)(w * CACHE_HASH_MULTIPLIER)) %
+               CACHE_SIZE;
     if (hash < 0) {
         hash = -hash;
     }
-    if (noise_cache[hash].valid &&         fabs(noise_cache[hash].x - x) < CACHE_EPSILON &&
-        fabs(noise_cache[hash].y - y) < CACHE_EPSILON && fabs(noise_cache[hash].z - z) < CACHE_EPSILON &&
+    if (noise_cache[hash].valid && fabs(noise_cache[hash].x - x) < CACHE_EPSILON &&
+        fabs(noise_cache[hash].y - y) < CACHE_EPSILON &&
+        fabs(noise_cache[hash].z - z) < CACHE_EPSILON &&
         fabs(noise_cache[hash].w - w) < CACHE_EPSILON) {
         cache_hits++;
         return noise_cache[hash].result;
@@ -1306,7 +1309,9 @@ static void cache_store(double x, double y, double z, double w, double result) {
     if (!cache_enabled) {
         return;
     }
-    int hash = ((int)(x * CACHE_HASH_MULTIPLIER) ^ (int)(y * CACHE_HASH_MULTIPLIER) ^ (int)(z * CACHE_HASH_MULTIPLIER) ^ (int)(w * CACHE_HASH_MULTIPLIER)) % CACHE_SIZE;
+    int hash = ((int)(x * CACHE_HASH_MULTIPLIER) ^ (int)(y * CACHE_HASH_MULTIPLIER) ^
+                (int)(z * CACHE_HASH_MULTIPLIER) ^ (int)(w * CACHE_HASH_MULTIPLIER)) %
+               CACHE_SIZE;
     if (hash < 0) {
         hash = -hash;
     }
@@ -1478,7 +1483,8 @@ double simplex_hybrid_multifractal_2d(double x, double y, int octaves, double pe
 // Domain Warping
 double simplex_domain_warp_2d(double x, double y, double warp_strength) {
     double warp_x = x + (simplex_noise_2d(x, y) * warp_strength);
-    double warp_y = y + (simplex_noise_2d(x + DOMAIN_WARP_OFFSET, y + DOMAIN_WARP_OFFSET) * warp_strength);
+    double warp_y =
+        y + (simplex_noise_2d(x + DOMAIN_WARP_OFFSET, y + DOMAIN_WARP_OFFSET) * warp_strength);
     return simplex_noise_2d(warp_x, warp_y);
 }
 
@@ -1511,7 +1517,8 @@ int simplex_noise_array_3d(double x_start, double y_start, double z_start, int w
                 double noise_x = x_start + (x * step);
                 double noise_y = y_start + (y * step);
                 double noise_z = z_start + (z * step);
-                output[(((z * height) + y) * width) + x] = simplex_noise_3d(noise_x, noise_y, noise_z);
+                output[(((z * height) + y) * width) + x] =
+                    simplex_noise_3d(noise_x, noise_y, noise_z);
             }
         }
     }

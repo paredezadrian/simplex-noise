@@ -108,8 +108,12 @@ typedef enum {
 typedef struct {
     int valid;
     int error_count;
-    char errors[10][256];  // NOLINT(cppcoreguidelines-avoid-c-arrays,cppcoreguidelines-avoid-magic-numbers)
-    char warnings[10][256];  // NOLINT(cppcoreguidelines-avoid-c-arrays,cppcoreguidelines-avoid-magic-numbers)
+    char errors
+        [10]
+        [256];  // NOLINT(cppcoreguidelines-avoid-c-arrays,cppcoreguidelines-avoid-magic-numbers)
+    char warnings
+        [10]
+        [256];  // NOLINT(cppcoreguidelines-avoid-c-arrays,cppcoreguidelines-avoid-magic-numbers)
     int warning_count;
 } simplex_config_validation_t;
 
