@@ -21,8 +21,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
+/* ===== CONSTANTS ===== */
+static const size_t SIMPLEX_MAX_ERROR_COUNT = 10;
+
 /* PRNG Algorithm Types */
-typedef enum {
+typedef enum : uint8_t {
     SIMPLEX_PRG_LINEAR_CONGRUENTIAL = 0,
     SIMPLEX_PRG_MERSENNE_TWISTER,
     SIMPLEX_PRG_XORSHIFT,
@@ -32,7 +35,7 @@ typedef enum {
 } simplex_prng_type_t;
 
 /* Noise Variant Types */
-typedef enum {
+typedef enum : uint8_t {
     SIMPLEX_NOISE_CLASSIC = 0,
     SIMPLEX_NOISE_RIDGED,
     SIMPLEX_NOISE_BILLOWY,
@@ -43,7 +46,7 @@ typedef enum {
 } simplex_noise_variant_t;
 
 /* Interpolation Methods */
-typedef enum {
+typedef enum : uint8_t {
     SIMPLEX_INTERP_LINEAR = 0,
     SIMPLEX_INTERP_CUBIC,
     SIMPLEX_INTERP_HERMITE,
@@ -52,7 +55,7 @@ typedef enum {
 } simplex_interp_type_t;
 
 /* Precision Levels */
-typedef enum {
+typedef enum : uint8_t {
     SIMPLEX_PRECISION_SINGLE = 0,
     SIMPLEX_PRECISION_DOUBLE,
     SIMPLEX_PRECISION_EXTENDED,
@@ -78,8 +81,8 @@ typedef struct {
     double scale;
 
     /* Advanced Configuration Options */
-    char config_file[256];  // NOLINT(readability-magic-numbers)
-    char output_file[256];  // NOLINT(readability-magic-numbers)
+    char config_file[256];  // NOLINT(cppcoreguidelines-avoid-c-arrays,cppcoreguidelines-avoid-magic-numbers)
+    char output_file[256];  // NOLINT(cppcoreguidelines-avoid-c-arrays,cppcoreguidelines-avoid-magic-numbers)
     int verbose_mode;
     int debug_mode;
     int auto_save;
@@ -91,7 +94,7 @@ typedef struct {
 } simplex_config_t;
 
 /* Configuration File Types */
-typedef enum {
+typedef enum : uint8_t {
     SIMPLEX_CONFIG_JSON = 0,
     SIMPLEX_CONFIG_YAML,
     SIMPLEX_CONFIG_INI,
@@ -103,8 +106,8 @@ typedef enum {
 typedef struct {
     int valid;
     int error_count;
-    char errors[10][256];  // NOLINT(readability-magic-numbers)
-    char warnings[10][256];  // NOLINT(readability-magic-numbers)
+    char errors[SIMPLEX_MAX_ERROR_COUNT][256];  // NOLINT(cppcoreguidelines-avoid-c-arrays,cppcoreguidelines-avoid-magic-numbers)
+    char warnings[SIMPLEX_MAX_ERROR_COUNT][256];  // NOLINT(cppcoreguidelines-avoid-c-arrays,cppcoreguidelines-avoid-magic-numbers)
     int warning_count;
 } simplex_config_validation_t;
 

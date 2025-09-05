@@ -31,7 +31,19 @@ enum {
     PERMUTATION_SIZE = 256,
     PERMUTATION_DOUBLE_SIZE = 512,
     LCG_MULTIPLIER = 1103515245,
-    LCG_INCREMENT = 12345
+    LCG_INCREMENT = 12345,
+    MERSENNE_STATE_SIZE = 624,
+    MERSENNE_MULTIPLIER = 1812433253,
+    MERSENNE_SHIFT_BITS = 30,
+    MERSENNE_MASK = 0xFFFFFFFF,
+    MERSENNE_MSB_MASK = 0x80000000,
+    MERSENNE_LSB_MASK = 0x7FFFFFFF,
+    MERSENNE_OFFSET = 397,
+    MERSENNE_XOR_MASK = 0x9908B0DF,
+    MERSENNE_TEMPER_SHIFT1 = 11,
+    MERSENNE_TEMPER_SHIFT2 = 7,
+    MERSENNE_TEMPER_SHIFT3 = 15,
+    MERSENNE_TEMPER_SHIFT4 = 18
 };
 
 #define CACHE_EPSILON 1e-9
@@ -63,37 +75,39 @@ enum {
 /* ===== GLOBAL STATE MANAGEMENT ===== */
 
 // Global permutation table
-static int perm[512];
-static int initialized = 0;
+static int perm[PERMUTATION_DOUBLE_SIZE];  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+static int initialized = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 // Advanced configuration
-static simplex_config_t global_config;
-static simplex_perf_stats_t perf_stats;
+static simplex_config_t global_config;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+static simplex_perf_stats_t perf_stats;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 // PRNG state for different algorithms
 static struct {
     uint32_t lcg_state;
-    uint32_t mersenne_state[624];
+    uint32_t mersenne_state[MERSENNE_STATE_SIZE];
     int mersenne_index;
     uint64_t xorshift_state[4];
     uint64_t pcg_state;
     uint64_t pcg_inc;
-} prng_state;
+} prng_state;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 // Caching system
-#define CACHE_SIZE 1024
+enum {
+CACHE_SIZE = 1024
+};
 static struct {
     double x, y, z, w;
     double result;
     int valid;
-} noise_cache[CACHE_SIZE];
-static int cache_enabled = 0;
-static int cache_hits = 0;
-static int cache_misses = 0;
+} noise_cache[CACHE_SIZE];  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+static int cache_enabled = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+static int cache_hits = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+static int cache_misses = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 // Performance tracking
-static int profiling_enabled = 0;
-static size_t function_call_count = 0;
+static int profiling_enabled = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+static size_t function_call_count = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 // Gradients for 2D noise
 static const double grad2[8][2] = {{1, 1}, {-1, 1}, {1, -1}, {-1, -1},
@@ -118,29 +132,29 @@ static const double grad4[32][4] = {{0, 1, 1, 1},  {0, 1, 1, -1},  {0, 1, -1, 1}
 
 // Linear Congruential Generator
 static uint32_t lcg_next(void) {
-    prng_state.lcg_state = prng_state.lcg_state * 1103515245 + 12345;
+    prng_state.lcg_state = prng_state.lcg_state * LCG_MULTIPLIER + LCG_INCREMENT;
     return prng_state.lcg_state;
 }
 
 // Mersenne Twister implementation
 static void mersenne_init(uint32_t seed) {
     prng_state.mersenne_state[0] = seed;
-    for (int i = 1; i < 624; i++) {
-        prng_state.mersenne_state[i] = (1812433253 * (prng_state.mersenne_state[i - 1] ^
-                                                      (prng_state.mersenne_state[i - 1] >> 30)) +
+    for (int i = 1; i < MERSENNE_STATE_SIZE; i++) {
+        prng_state.mersenne_state[i] = (MERSENNE_MULTIPLIER * (prng_state.mersenne_state[i - 1] ^
+                                                      (prng_state.mersenne_state[i - 1] >> MERSENNE_SHIFT_BITS)) +
                                         i) &
-                                       0xFFFFFFFF;
+                                       MERSENNE_MASK;
     }
     prng_state.mersenne_index = 0;
 }
 
 static void mersenne_generate(void) {
-    for (int i = 0; i < 624; i++) {
-        uint32_t y = (prng_state.mersenne_state[i] & 0x80000000) +
-                     (prng_state.mersenne_state[(i + 1) % 624] & 0x7FFFFFFF);
-        prng_state.mersenne_state[i] = prng_state.mersenne_state[(i + 397) % 624] ^ (y >> 1);
+    for (int i = 0; i < MERSENNE_STATE_SIZE; i++) {
+        uint32_t y = (prng_state.mersenne_state[i] & MERSENNE_MSB_MASK) +
+                     (prng_state.mersenne_state[(i + 1) % MERSENNE_STATE_SIZE] & MERSENNE_LSB_MASK);
+        prng_state.mersenne_state[i] = prng_state.mersenne_state[(i + MERSENNE_OFFSET) % MERSENNE_STATE_SIZE] ^ (y >> 1);
         if (y % 2) {
-            prng_state.mersenne_state[i] ^= 0x9908B0DF;
+            prng_state.mersenne_state[i] ^= MERSENNE_XOR_MASK;
         }
     }
 }
@@ -150,10 +164,10 @@ static uint32_t mersenne_next(void) {
         mersenne_generate();
     }
     uint32_t y = prng_state.mersenne_state[prng_state.mersenne_index];
-    y ^= (y >> 11);
-    y ^= (y << 7) & 0x9D2C5680;
-    y ^= (y << 15) & 0xEFC60000;
-    y ^= (y >> 18);
+    y ^= (y >> MERSENNE_TEMPER_SHIFT1);
+    y ^= (y << MERSENNE_TEMPER_SHIFT2) & 0x9D2C5680;
+    y ^= (y << MERSENNE_TEMPER_SHIFT3) & 0xEFC60000;
+    y ^= (y >> MERSENNE_TEMPER_SHIFT4);
     prng_state.mersenne_index = (prng_state.mersenne_index + 1) % 624;
     return y;
 }
@@ -543,19 +557,19 @@ static int load_json_config(const char* filename, simplex_config_t* config) {
     }
         // Simple JSON key-value parser
         if (strstr(line, "\"prng_type\"") && strchr(line, ':')) {
-            int temp;
+            int temp = 0;
             sscanf(line, "\"prng_type\" : %d", &temp);
             config->prng_type = (simplex_prng_type_t)temp;
         } else if (strstr(line, "\"noise_variant\"") && strchr(line, ':')) {
-            int temp;
+            int temp = 0;
             sscanf(line, "\"noise_variant\" : %d", &temp);
             config->noise_variant = (simplex_noise_variant_t)temp;
         } else if (strstr(line, "\"interp_type\"") && strchr(line, ':')) {
-            int temp;
+            int temp = 0;
             sscanf(line, "\"interp_type\" : %d", &temp);
             config->interp_type = (simplex_interp_type_t)temp;
         } else if (strstr(line, "\"precision\"") && strchr(line, ':')) {
-            int temp;
+            int temp = 0;
             sscanf(line, "\"precision\" : %d", &temp);
             config->precision = (simplex_precision_t)temp;
         } else if (strstr(line, "\"seed\"") && strchr(line, ':')) {
@@ -1316,7 +1330,7 @@ static double interpolate(double t, simplex_interp_type_t type) {
     case SIMPLEX_INTERP_CUBIC:
         return t * t * (3.0 - 2.0 * t);
     case SIMPLEX_INTERP_HERMITE:
-        return t * t * (2.0 * t - 3.0) + 1.0;
+        return (t * t * (2.0 * t - 3.0)) + 1.0;
     case SIMPLEX_INTERP_SMOOTHSTEP:
         return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
     default:
@@ -1326,15 +1340,15 @@ static double interpolate(double t, simplex_interp_type_t type) {
 
 // Helper functions
 static double dot2d(const double grad[2], double x, double y) {
-    return grad[0] * x + grad[1] * y;
+    return (grad[0] * x) + (grad[1] * y);
 }
 
 static double dot3d(const double grad[3], double x, double y, double z) {
-    return grad[0] * x + grad[1] * y + grad[2] * z;
+    return (grad[0] * x) + (grad[1] * y) + (grad[2] * z);
 }
 
 static double dot4d(const double grad[4], double x, double y, double z, double w) {
-    return grad[0] * x + grad[1] * y + grad[2] * z + grad[3] * w;
+    return (grad[0] * x) + (grad[1] * y) + (grad[2] * z) + (grad[3] * w);
 }
 
 static int fast_floor(double x) {
@@ -1463,8 +1477,8 @@ double simplex_hybrid_multifractal_2d(double x, double y, int octaves, double pe
 
 // Domain Warping
 double simplex_domain_warp_2d(double x, double y, double warp_strength) {
-    double warp_x = x + simplex_noise_2d(x, y) * warp_strength;
-    double warp_y = y + simplex_noise_2d(x + DOMAIN_WARP_OFFSET, y + DOMAIN_WARP_OFFSET) * warp_strength;
+    double warp_x = x + (simplex_noise_2d(x, y) * warp_strength);
+    double warp_y = y + (simplex_noise_2d(x + DOMAIN_WARP_OFFSET, y + DOMAIN_WARP_OFFSET) * warp_strength);
     return simplex_noise_2d(warp_x, warp_y);
 }
 
@@ -1477,9 +1491,9 @@ int simplex_noise_array_2d(double x_start, double y_start, int width, int height
     }
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
-            double noise_x = x_start + x * step;
-            double noise_y = y_start + y * step;
-            output[y * width + x] = simplex_noise_2d(noise_x, noise_y);
+            double noise_x = x_start + (x * step);
+            double noise_y = y_start + (y * step);
+            output[(y * width) + x] = simplex_noise_2d(noise_x, noise_y);
         }
     }
 
@@ -1494,10 +1508,10 @@ int simplex_noise_array_3d(double x_start, double y_start, double z_start, int w
     for (int z = 0; z < depth; z++) {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                double noise_x = x_start + x * step;
-                double noise_y = y_start + y * step;
-                double noise_z = z_start + z * step;
-                output[(z * height + y) * width + x] = simplex_noise_3d(noise_x, noise_y, noise_z);
+                double noise_x = x_start + (x * step);
+                double noise_y = y_start + (y * step);
+                double noise_z = z_start + (z * step);
+                output[(((z * height) + y) * width) + x] = simplex_noise_3d(noise_x, noise_y, noise_z);
             }
         }
     }
@@ -1531,8 +1545,8 @@ double simplex_noise_1d(double x) {
     double x0 = x - i0;
     double x1 = x0 - 1.0;
 
-    double t0 = 1.0 - x0 * x0;
-    double t1 = 1.0 - x1 * x1;
+    double t0 = 1.0 - (x0 * x0);
+    double t1 = 1.0 - (x1 * x1);
 
     t0 *= t0;
     t1 *= t1;
@@ -1559,7 +1573,8 @@ double simplex_noise_2d(double x, double y) {
     double x0 = x - (i - t);
     double y0 = y - (j - t);
 
-    int i1, j1;
+    int i1;
+    int j1;
     if (x0 > y0) {
         i1 = 1;
         j1 = 0;
@@ -1570,8 +1585,8 @@ double simplex_noise_2d(double x, double y) {
 
     double x1 = x0 - i1 + G2;
     double y1 = y0 - j1 + G2;
-    double x2 = x0 - 1.0 + 2.0 * G2;
-    double y2 = y0 - 1.0 + 2.0 * G2;
+    double x2 = x0 - 1.0 + (2.0 * G2);
+    double y2 = y0 - 1.0 + (2.0 * G2);
 
     int ii = i & 0xff;
     int jj = j & 0xff;
@@ -1579,21 +1594,21 @@ double simplex_noise_2d(double x, double y) {
     int gi1 = perm[ii + i1 + perm[jj + j1]] % SIMPLEX_2D_GRAD_COUNT;
     int gi2 = perm[ii + 1 + perm[jj + 1]] % SIMPLEX_2D_GRAD_COUNT;
 
-    double t0 = SIMPLEX_2D_THRESHOLD - x0 * x0 - y0 * y0;
+    double t0 = SIMPLEX_2D_THRESHOLD - (x0 * x0) - (y0 * y0);
     double n0 = 0.0;
     if (t0 >= 0) {
         t0 *= t0;
         n0 = t0 * t0 * dot2d(grad2[gi0], x0, y0);
     }
 
-    double t1 = SIMPLEX_2D_THRESHOLD - x1 * x1 - y1 * y1;
+    double t1 = SIMPLEX_2D_THRESHOLD - (x1 * x1) - (y1 * y1);
     double n1 = 0.0;
     if (t1 >= 0) {
         t1 *= t1;
         n1 = t1 * t1 * dot2d(grad2[gi1], x1, y1);
     }
 
-    double t2 = SIMPLEX_2D_THRESHOLD - x2 * x2 - y2 * y2;
+    double t2 = SIMPLEX_2D_THRESHOLD - (x2 * x2) - (y2 * y2);
     double n2 = 0.0;
     if (t2 >= 0) {
         t2 *= t2;
@@ -1621,8 +1636,12 @@ double simplex_noise_3d(double x, double y, double z) {
     double y0 = y - (j - t);
     double z0 = z - (k - t);
 
-    int i1, j1, k1;
-    int i2, j2, k2;
+    int i1;
+    int j1;
+    int k1;
+    int i2;
+    int j2;
+    int k2;
 
     if (x0 >= y0) {
         if (y0 >= z0) {
@@ -1675,12 +1694,12 @@ double simplex_noise_3d(double x, double y, double z) {
     double x1 = x0 - i1 + G3;
     double y1 = y0 - j1 + G3;
     double z1 = z0 - k1 + G3;
-    double x2 = x0 - i2 + 2.0 * G3;
-    double y2 = y0 - j2 + 2.0 * G3;
-    double z2 = z0 - k2 + 2.0 * G3;
-    double x3 = x0 - 1.0 + 3.0 * G3;
-    double y3 = y0 - 1.0 + 3.0 * G3;
-    double z3 = z0 - 1.0 + 3.0 * G3;
+    double x2 = x0 - i2 + (2.0 * G3);
+    double y2 = y0 - j2 + (2.0 * G3);
+    double z2 = z0 - k2 + (2.0 * G3);
+    double x3 = x0 - 1.0 + (3.0 * G3);
+    double y3 = y0 - 1.0 + (3.0 * G3);
+    double z3 = z0 - 1.0 + (3.0 * G3);
 
     int ii = i & 0xff;
     int jj = j & 0xff;
@@ -1690,28 +1709,28 @@ double simplex_noise_3d(double x, double y, double z) {
     int gi2 = perm[ii + i2 + perm[jj + j2 + perm[kk + k2]]] % 12;
     int gi3 = perm[ii + 1 + perm[jj + 1 + perm[kk + 1]]] % 12;
 
-    double t0 = 0.6 - x0 * x0 - y0 * y0 - z0 * z0;
+    double t0 = 0.6 - (x0 * x0) - (y0 * y0) - (z0 * z0);
     double n0 = 0.0;
     if (t0 >= 0) {
         t0 *= t0;
         n0 = t0 * t0 * dot3d(grad3[gi0], x0, y0, z0);
     }
 
-    double t1 = 0.6 - x1 * x1 - y1 * y1 - z1 * z1;
+    double t1 = 0.6 - (x1 * x1) - (y1 * y1) - (z1 * z1);
     double n1 = 0.0;
     if (t1 >= 0) {
         t1 *= t1;
         n1 = t1 * t1 * dot3d(grad3[gi1], x1, y1, z1);
     }
 
-    double t2 = 0.6 - x2 * x2 - y2 * y2 - z2 * z2;
+    double t2 = 0.6 - (x2 * x2) - (y2 * y2) - (z2 * z2);
     double n2 = 0.0;
     if (t2 >= 0) {
         t2 *= t2;
         n2 = t2 * t2 * dot3d(grad3[gi2], x2, y2, z2);
     }
 
-    double t3 = 0.6 - x3 * x3 - y3 * y3 - z3 * z3;
+    double t3 = 0.6 - (x3 * x3) - (y3 * y3) - (z3 * z3);
     double n3 = 0.0;
     if (t3 >= 0) {
         t3 *= t3;
@@ -1749,9 +1768,18 @@ double simplex_noise_4d(double x, double y, double z, double w) {
     int c6 = (z0 > w0) ? 1 : 0;
     int c = c1 + c2 + c3 + c4 + c5 + c6;
 
-    int i1, j1, k1, l1;
-    int i2, j2, k2, l2;
-    int i3, j3, k3, l3;
+    int i1;
+    int j1;
+    int k1;
+    int l1;
+    int i2;
+    int j2;
+    int k2;
+    int l2;
+    int i3;
+    int j3;
+    int k3;
+    int l3;
 
     static const int simplex[64][4] = {
         {0, 1, 2, 3}, {0, 1, 3, 2}, {0, 0, 1, 1}, {0, 2, 3, 1}, {0, 0, 1, 1}, {0, 0, 1, 1},
@@ -1785,18 +1813,18 @@ double simplex_noise_4d(double x, double y, double z, double w) {
     double y1 = y0 - j1 + G4;
     double z1 = z0 - k1 + G4;
     double w1 = w0 - l1 + G4;
-    double x2 = x0 - i2 + 2.0 * G4;
-    double y2 = y0 - j2 + 2.0 * G4;
-    double z2 = z0 - k2 + 2.0 * G4;
-    double w2 = w0 - l2 + 2.0 * G4;
-    double x3 = x0 - i3 + 3.0 * G4;
-    double y3 = y0 - j3 + 3.0 * G4;
-    double z3 = z0 - k3 + 3.0 * G4;
-    double w3 = w0 - l3 + 3.0 * G4;
-    double x4 = x0 - 1.0 + 4.0 * G4;
-    double y4 = y0 - 1.0 + 4.0 * G4;
-    double z4 = z0 - 1.0 + 4.0 * G4;
-    double w4 = w0 - 1.0 + 4.0 * G4;
+    double x2 = x0 - i2 + (2.0 * G4);
+    double y2 = y0 - j2 + (2.0 * G4);
+    double z2 = z0 - k2 + (2.0 * G4);
+    double w2 = w0 - l2 + (2.0 * G4);
+    double x3 = x0 - i3 + (3.0 * G4);
+    double y3 = y0 - j3 + (3.0 * G4);
+    double z3 = z0 - k3 + (3.0 * G4);
+    double w3 = w0 - l3 + (3.0 * G4);
+    double x4 = x0 - 1.0 + (4.0 * G4);
+    double y4 = y0 - 1.0 + (4.0 * G4);
+    double z4 = z0 - 1.0 + (4.0 * G4);
+    double w4 = w0 - 1.0 + (4.0 * G4);
 
     int ii = i & 0xff;
     int jj = j & 0xff;
@@ -1808,35 +1836,35 @@ double simplex_noise_4d(double x, double y, double z, double w) {
     int gi3 = perm[ii + i3 + perm[jj + j3 + perm[kk + k3 + perm[ll + l3]]]] % 32;
     int gi4 = perm[ii + 1 + perm[jj + 1 + perm[kk + 1 + perm[ll + 1]]]] % 32;
 
-    double t0 = 0.6 - x0 * x0 - y0 * y0 - z0 * z0 - w0 * w0;
+    double t0 = 0.6 - (x0 * x0) - (y0 * y0) - (z0 * z0) - (w0 * w0);
     double n0 = 0.0;
     if (t0 >= 0) {
         t0 *= t0;
         n0 = t0 * t0 * dot4d(grad4[gi0], x0, y0, z0, w0);
     }
 
-    double t1 = 0.6 - x1 * x1 - y1 * y1 - z1 * z1 - w1 * w1;
+    double t1 = 0.6 - (x1 * x1) - (y1 * y1) - (z1 * z1) - (w1 * w1);
     double n1 = 0.0;
     if (t1 >= 0) {
         t1 *= t1;
         n1 = t1 * t1 * dot4d(grad4[gi1], x1, y1, z1, w1);
     }
 
-    double t2 = 0.6 - x2 * x2 - y2 * y2 - z2 * z2 - w2 * w2;
+    double t2 = 0.6 - (x2 * x2) - (y2 * y2) - (z2 * z2) - (w2 * w2);
     double n2 = 0.0;
     if (t2 >= 0) {
         t2 *= t2;
         n2 = t2 * t2 * dot4d(grad4[gi2], x2, y2, z2, w2);
     }
 
-    double t3 = 0.6 - x3 * x3 - y3 * y3 - z3 * z3 - w3 * w3;
+    double t3 = 0.6 - (x3 * x3) - (y3 * y3) - (z3 * z3) - (w3 * w3);
     double n3 = 0.0;
     if (t3 >= 0) {
         t3 *= t3;
         n3 = t3 * t3 * dot4d(grad4[gi3], x3, y3, z3, w3);
     }
 
-    double t4 = 0.6 - x4 * x4 - y4 * y4 - z4 * z4 - w4 * w4;
+    double t4 = 0.6 - (x4 * x4) - (y4 * y4) - (z4 * z4) - (w4 * w4);
     double n4 = 0.0;
     if (t4 >= 0) {
         t4 *= t4;
